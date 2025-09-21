@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="9886dc2c-4621-4f75-b92f-9aae49e083cb" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/.name" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/compiler.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/description.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/jarRepositories.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/project-template.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../shapelib-demo.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/Main.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/classes/ClassWithMembers.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/inheritance/BaseClass.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/inheritance/DerivedClass.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/abstractbaseclass/AbstractShape.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/abstractbaseclass/DerivedCircle.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/abstractbaseclass/DerivedCompoundShape.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/abstractbaseclass/DerivedLine.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/interfacebasedshapes/BetterCircle.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/interfacebasedshapes/BetterCompoundShape.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/interfacebasedshapes/BetterLine.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/interfacebasedshapes/BetterShapeCompositionInterface.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/interfacebasedshapes/BetterShapeInterface.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/interfacebasedshapes/BetterShapeMathInterface.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/optimizedsolution/Circle.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/optimizedsolution/CompoundShape.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/optimizedsolution/Line.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/optimizedsolution/Shape.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/optimizedsolution/ShapeCompositionInterface.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/optimizedsolution/ShapeInterface.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/polymorphism/optimizedsolution/ShapeMathInterface.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/shapestack/ShapeStack.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/main/java/at/fhtw/swen1/shapelib/shapestack/ShapeStackInterface.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/module-info.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/at/fhtw/swen1/shapelib/ShapeLibraryIntegrationTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/at/fhtw/swen1/shapelib/ShapeLibraryMockTests.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/test/java/at/fhtw/swen1/shapelib/ShapeLibraryUnitTests.java" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+        <option value="Enum" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GitLabMergeRequestFiltersHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPENED&quot;,
+    &quot;assignee&quot;: {
+      &quot;type&quot;: &quot;org.jetbrains.plugins.gitlab.mergerequest.ui.filters.GitLabMergeRequestsFiltersValue.MergeRequestsMemberFilterValue.MergeRequestsAssigneeFilterValue&quot;,
+      &quot;username&quot;: &quot;if24b250&quot;,
+      &quot;fullname&quot;: &quot;Jasmina Mojdehkar&quot;
+    }
+  }
+}</component>
+  <component name="GitLabMergeRequestsSettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;first&quot;: &quot;https://git.technikum-wien.at/swen/swen1/java/shapelibdemo.git&quot;,
+    &quot;second&quot;: &quot;eed90519-989c-4a4c-8660-a108ad20901b&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="32PncnWJu4UNIIbVYTCMYL9XdOd" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Main.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/jasmi/Documents/FH/WS 2025/SWEN/MRP_Mojdehkar",
+    "onboarding.tips.debug.path": "C:/Users/jasmi/Documents/FH/WS 2025/SWEN/app/src/main/java/org/example/Main.java"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Main" />
+      <module name="MRP_Mojdehkar" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value=".*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Main" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.25557.131" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="9886dc2c-4621-4f75-b92f-9aae49e083cb" name="Changes" comment="" />
+      <created>1757331158834</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1757331158834</updated>
+    </task>
+    <servers />
+  </component>
+</project>
