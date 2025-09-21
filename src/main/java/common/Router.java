@@ -28,11 +28,12 @@ public class Router implements Application {
 
     @Override
     public Response handle(Request request) {
-        String requestPath = request.getPath();
+        String requestPath = normalize(request.getPath());
         for (Controller controller : controllers) {
-            if(matchesPrefix(requestPath, controller.getBasePath())) {
-                String sub = subPath(requestPath, controller.getBasePath());
-                try{
+            String base = normalize(controller.getBasePath());
+            if (matchesPrefix(requestPath, base)) {
+                String sub = subPath(requestPath, base);
+                try {
                     return controller.handle(request, sub);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -44,9 +45,13 @@ public class Router implements Application {
         return info(Status.NOT_FOUND, requestPath);
     }
 
+    // aktuell werden alle pfade die nicht richtig sind als "/" zurückgegeben
     public static boolean matchesPrefix(String path, String basePath) {
+        path = normalize(path);
+        basePath = normalize(basePath);
+
         if ("/".equals(basePath)) {
-            return true;
+            return "/".equals(path);
         }
         return path.equals(basePath) || path.startsWith(basePath + "/");
     }
@@ -55,7 +60,7 @@ public class Router implements Application {
         if ("/".equals(basePath)) {
             return path;
         }
-        if(path.equals(basePath)) {
+        if (path.equals(basePath)) {
             return "/";
         }
         return path.substring(basePath.length());
@@ -65,7 +70,26 @@ public class Router implements Application {
         Response r = new Response();
         r.setStatus(status);
         r.setContentType(ContentType.PLAIN_TEXT);
-        r.setBody(body);
+
+        switch (status) {
+            case NOT_FOUND:
+                r.setBody("404 Not Found");
+                break;
+            case INTERNAL_SERVER_ERROR:
+                r.setBody("500 Internal Server Error");
+                break;
+            default:
+                r.setBody(body);
+        }
         return r;
     }
+
+    private static String normalize(String p) {
+        //pfad wird vorbereitet
+        if (p == null || p.isEmpty()) return "/";
+        if (!p.startsWith("/")) p = "/" + p;
+        if (p.length() > 1 && p.endsWith("/")) p = p.substring(0, p.length() - 1);
+        return p;
+    }
 }
+

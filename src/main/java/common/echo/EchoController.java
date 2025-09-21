@@ -11,6 +11,6 @@ public class EchoController extends Controller {
 
     @Override
     public Response handle(Request request, String subPath) {
-        return ok("Hallo was geht test");
+        return ok("Ich bin ein echo Controller");
     }
 }
