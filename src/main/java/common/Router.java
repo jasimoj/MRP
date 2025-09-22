@@ -45,25 +45,30 @@ public class Router implements Application {
         return info(Status.NOT_FOUND, requestPath);
     }
 
+    private static String normalize(String p) {
+        //pfad wird vorbereitet
+        if (p == null || p.isEmpty()) return "/";
+        if (!p.startsWith("/")) p = "/" + p;
+        if (p.length() > 1 && p.endsWith("/")) p = p.substring(0, p.length() - 1);
+        return p;
+    }
+
     // aktuell werden alle pfade die nicht richtig sind als "/" zurückgegeben
     public static boolean matchesPrefix(String path, String basePath) {
-        path = normalize(path);
-        basePath = normalize(basePath);
-
         if ("/".equals(basePath)) {
-            return "/".equals(path);
+            return "/".equals(path); // für root "/"
         }
-        return path.equals(basePath) || path.startsWith(basePath + "/");
+        return path.equals(basePath) || path.startsWith(basePath + "/"); // für zb "/user" und "/user/"
     }
 
     public static String subPath(String path, String basePath) {
         if ("/".equals(basePath)) {
-            return path;
+            return path; // nur Root
         }
         if (path.equals(basePath)) {
-            return "/";
+            return "/"; // Basepath von Controllern
         }
-        return path.substring(basePath.length());
+        return path.substring(basePath.length()); // rest hinter basepath
     }
 
     protected Response info(Status status, String body) {
@@ -84,12 +89,6 @@ public class Router implements Application {
         return r;
     }
 
-    private static String normalize(String p) {
-        //pfad wird vorbereitet
-        if (p == null || p.isEmpty()) return "/";
-        if (!p.startsWith("/")) p = "/" + p;
-        if (p.length() > 1 && p.endsWith("/")) p = p.substring(0, p.length() - 1);
-        return p;
-    }
+
 }
 
