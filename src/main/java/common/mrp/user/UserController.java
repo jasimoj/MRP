@@ -1,20 +1,121 @@
 package common.mrp.user;
 
 import common.Controller;
+import common.routing.PathUtil;
 import server.http.Request;
 import server.http.Response;
 import server.http.Status;
 
 public class UserController extends Controller {
-     public UserController(){
-         super("/user");
-     }
+    public UserController() {
+        super("/users");
+    }
 
     @Override
     public Response handle(Request request, String subPath) {
-         if(subPath.equals("/42")){
-             return ok("ich bin ein user index");
-         }
-        return ok("Ich bin ein UserController");
+
+        String[] split = PathUtil.splitPath(subPath);
+
+        if (request.getMethod().equals("GET")) {
+            if (isBase(split)) {
+                return ok("Ich bin ein UserController");
+            }
+
+            if (isUserProfile(split)) {
+                return getUserProfile(request, PathUtil.parseId(split[0]));
+            }
+
+            if (isUserRatings(split)) {
+                return getUserRatings(request, PathUtil.parseId(split[0]));
+            }
+
+            if (isUserFavorites(split)) {
+                return getUserFavorites(request, PathUtil.parseId(split[0]));
+            }
+
+            if (isUserRecommendations(split)) {
+                return getUserRecommendations(request, PathUtil.parseId(split[0]));
+            }
+        }
+
+        if (request.getMethod().equals("PUT")) {
+            // Platzhalter
+            if (isUserProfile(split)) {
+                return putUserProfile(request, PathUtil.parseId(split[0]));
+            }
+        }
+
+        if (request.getMethod().equals("POST")) {
+            // Platzhalter
+            if (isUserRegister(split)) {
+                return postUserRegister(request);
+            }
+            if (isUserLogin(split)) {
+                return postUserLogin(request);
+            }
+        }
+
+        return info(Status.NOT_FOUND, "404 Not Found");
+
+    }
+
+    //   ----- Path Matcher ---------
+
+    private boolean isBase(String[] split) {
+        return split.length == 0;
+    }
+
+    private boolean isUserProfile(String[] split) {
+        return split.length == 2 && PathUtil.isInteger(split[0]) && split[1].equals("profile");
+    }
+
+    private boolean isUserRatings(String[] split) {
+        return split.length == 2 && PathUtil.isInteger(split[0]) && split[1].equals("ratings");
+    }
+
+    private boolean isUserFavorites(String[] split) {
+        return split.length == 2 && PathUtil.isInteger(split[0]) && split[1].equals("favorites");
+    }
+
+    private boolean isUserRegister(String[] split) {
+        return split.length == 1 && split[0].equals("register");
+    }
+
+    private boolean isUserLogin(String[] split) {
+        return split.length == 1 && split[0].equals("login");
+    }
+    private boolean isUserRecommendations(String[] split) {
+        return split.length == 2 && PathUtil.isInteger(split[0]) && split[1].equals("recommendations");
+    }
+
+    //   ------ Methoden --------
+    // GET
+    private Response getUserProfile(Request request, int UserId) {
+        return ok("User profile: " + UserId);
+    }
+
+    private Response getUserRatings(Request request, int UserId) {
+        return ok("Ratings from User: " + UserId);
+    }
+
+    private Response getUserFavorites(Request request, int UserId) {
+        return ok("Favorites from User: " + UserId);
+    }
+    private Response getUserRecommendations(Request request, int UserId) {
+        return ok("Get recommendations for User: " + UserId);
+    }
+
+    //PUT
+    private Response putUserProfile(Request request, int UserId) {
+        return ok("Added User profile: " + UserId);
+    }
+
+    //POST
+    private Response postUserRegister(Request request) {
+        return ok("Registered User");
+    }
+
+    private Response postUserLogin(Request request) {
+        return ok("User logged in ");
     }
 }

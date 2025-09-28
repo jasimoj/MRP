@@ -1,14 +1,13 @@
-package common;
+package common.routing;
 
+import common.Controller;
 import server.http.ContentType;
 import server.http.Request;
 import server.http.Response;
 import server.http.Status;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Router {
 
@@ -25,9 +24,7 @@ public class Router {
         return this;
     }
 
-
-
-        public Response handle(Request request) {
+    public Response handle(Request request) {
         String requestPath = normalize(request.getPath());
         for (Controller controller : controllers) {
             String base = normalize(controller.getBasePath());
@@ -45,7 +42,7 @@ public class Router {
         return info(Status.NOT_FOUND, requestPath);
     }
 
-    private     static String normalize(String p) {
+    private static String normalize(String p) {
         //pfad wird vorbereitet
         if (p == null || p.isEmpty()) return "/";
         if (!p.startsWith("/")) p = "/" + p;
