@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Router implements Application {
+public class Router {
 
 //    Was macht der Router?
 //    Er nimmt einen Request entgegen.
@@ -26,8 +26,8 @@ public class Router implements Application {
     }
 
 
-    @Override
-    public Response handle(Request request) {
+
+        public Response handle(Request request) {
         String requestPath = normalize(request.getPath());
         for (Controller controller : controllers) {
             String base = normalize(controller.getBasePath());
@@ -45,7 +45,7 @@ public class Router implements Application {
         return info(Status.NOT_FOUND, requestPath);
     }
 
-    private static String normalize(String p) {
+    private     static String normalize(String p) {
         //pfad wird vorbereitet
         if (p == null || p.isEmpty()) return "/";
         if (!p.startsWith("/")) p = "/" + p;
