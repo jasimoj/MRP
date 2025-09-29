@@ -45,16 +45,6 @@ public class UserController extends Controller {
             }
         }
 
-        if (request.getMethod().equals("POST")) {
-            // Platzhalter
-            if (isUserRegister(split)) {
-                return postUserRegister(request);
-            }
-            if (isUserLogin(split)) {
-                return postUserLogin(request);
-            }
-        }
-
         return info(Status.NOT_FOUND, "404 Not Found");
 
     }
@@ -77,13 +67,7 @@ public class UserController extends Controller {
         return split.length == 2 && PathUtil.isInteger(split[0]) && split[1].equals("favorites");
     }
 
-    private boolean isUserRegister(String[] split) {
-        return split.length == 1 && split[0].equals("register");
-    }
 
-    private boolean isUserLogin(String[] split) {
-        return split.length == 1 && split[0].equals("login");
-    }
     private boolean isUserRecommendations(String[] split) {
         return split.length == 2 && PathUtil.isInteger(split[0]) && split[1].equals("recommendations");
     }
@@ -110,12 +94,5 @@ public class UserController extends Controller {
         return ok("Added User profile: " + UserId);
     }
 
-    //POST
-    private Response postUserRegister(Request request) {
-        return ok("Registered User");
-    }
 
-    private Response postUserLogin(Request request) {
-        return ok("User logged in ");
-    }
 }

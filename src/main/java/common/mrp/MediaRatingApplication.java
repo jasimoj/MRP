@@ -1,6 +1,8 @@
 package common.mrp;
 
 import common.Application;
+import common.mrp.auth.AuthController;
+import common.mrp.leaderboard.LeaderboardController;
 import common.routing.Router;
 import common.echo.EchoController;
 import common.mrp.media.MediaController;
@@ -18,6 +20,8 @@ public class MediaRatingApplication implements Application {
         router.registerController(new MediaController())
                 .registerController(new UserController())
                 .registerController(new RatingController())
+                .registerController(new LeaderboardController())
+                .registerController(new AuthController())
                 .registerController(new EchoController());
     }
 
