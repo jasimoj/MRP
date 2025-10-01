@@ -7,8 +7,10 @@ import server.http.Response;
 import server.http.Status;
 
 public class UserController extends Controller {
+    private final UserService userService;
     public UserController() {
         super("/users");
+        userService = new UserService();
     }
 
     @Override
@@ -75,7 +77,7 @@ public class UserController extends Controller {
     //   ------ Methoden --------
     // GET
     private Response getUserProfile(Request request, int UserId) {
-        return ok("User profile: " + UserId);
+        return ok(userService.getUser(UserId).getUsername());
     }
 
     private Response getUserRatings(Request request, int UserId) {

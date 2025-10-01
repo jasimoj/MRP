@@ -27,6 +27,12 @@ public class MediaRatingApplication implements Application {
 
     @Override
     public Response handle(Request request) {
-        return router.handle(request);
+        try {
+            return router.handle(request);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
