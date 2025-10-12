@@ -2,6 +2,7 @@ package common.mrp.media;
 
 import common.Controller;
 import common.routing.PathUtil;
+import server.http.Method;
 import server.http.Request;
 import server.http.Response;
 import server.http.Status;
@@ -15,7 +16,7 @@ public class MediaController extends Controller {
     public Response handle(Request request, String subPath) {
         String[] split = PathUtil.splitPath(subPath);
 
-        if (request.getMethod().equals("GET")) {
+        if (request.getMethod().equals(Method.GET.getValue())) {
             if (isBase(split)) {
                 //Platzhalter
                 return getMedia(request);
@@ -26,14 +27,14 @@ public class MediaController extends Controller {
             }
         }
 
-        if (request.getMethod().equals("PUT")) {
+        if (request.getMethod().equals(Method.PUT.getValue())) {
             // Platzhalter
             if (isMediaWithId(split)) {
                 return putUpdateMedia(request, PathUtil.parseId(split[0]));
             }
         }
 
-        if (request.getMethod().equals("POST")) {
+        if (request.getMethod().equals(Method.POST.getValue())) {
             // Platzhalter
             if (isBase(split)) {
                 return postCreateMedia(request);
@@ -48,7 +49,7 @@ public class MediaController extends Controller {
 
         }
 
-        if (request.getMethod().equals("DELETE")) {
+        if (request.getMethod().equals(Method.DELETE.getValue())) {
             // Platzhalter
 
             if (isMediaWithId(split)) {
@@ -60,7 +61,7 @@ public class MediaController extends Controller {
             }
         }
 
-        return info(Status.NOT_FOUND, "404 Not Found");
+        return info(Status.NOT_FOUND, Status.NOT_FOUND.getMessage());
 
     }
 

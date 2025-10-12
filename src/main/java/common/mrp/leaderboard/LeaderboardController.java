@@ -2,6 +2,7 @@ package common.mrp.leaderboard;
 
 import common.Controller;
 import common.routing.PathUtil;
+import server.http.Method;
 import server.http.Request;
 import server.http.Response;
 import server.http.Status;
@@ -14,13 +15,13 @@ public class LeaderboardController extends Controller {
     @Override
     public Response handle(Request request, String subPath) {
         String[] split = PathUtil.splitPath(subPath);
-        if (request.getMethod().equals("GET")) {
+        if (request.getMethod().equals(Method.GET.getValue())) {
             if (isBase(split)) {
                 //Platzhalter
                 return getLeaderboard(request);
             }
         }
-        return info(Status.NOT_FOUND, "404 Not Found");
+        return info(Status.NOT_FOUND, Status.NOT_FOUND.getMessage());
 
     }
 

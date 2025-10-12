@@ -25,7 +25,20 @@ public class Response {
         return status.getCode();
     }
 
+    public String getStatusMessage() {
+        return status.getMessage();
+    }
+
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public Response() {
+    }
+
+    public Response(Status status, ContentType contentType, String body) {
+        this.status = status;
+        this.contentType = contentType;
+        this.body = body;
     }
 }

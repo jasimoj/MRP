@@ -23,6 +23,7 @@ public enum Status {
     public int getCode() {
         return code;
     }
+
     Status(int code, String message) {
         this.code = code;
         this.message = message;

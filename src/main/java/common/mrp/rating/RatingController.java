@@ -2,6 +2,7 @@ package common.mrp.rating;
 
 import common.Controller;
 import common.routing.PathUtil;
+import server.http.Method;
 import server.http.Request;
 import server.http.Response;
 import server.http.Status;
@@ -16,20 +17,20 @@ public class RatingController extends Controller {
 
         String[] split = PathUtil.splitPath(subPath);
 
-        if (request.getMethod().equals("GET")) {
+        if (request.getMethod().equals(Method.GET.getValue())) {
             if (isBase(split)) {
                 return ok("Ich bin ein RatingsController");
             }
         }
 
-        if (request.getMethod().equals("PUT")) {
+        if (request.getMethod().equals(Method.PUT.getValue())) {
             // Platzhalter
             if (isUpdateRating(split)) {
                 return putUpdateRating(request, PathUtil.parseId(split[0]));
             }
         }
 
-        if (request.getMethod().equals("POST")) {
+        if (request.getMethod().equals(Method.POST.getValue())) {
             // Platzhalter
             if (isRatingLike(split)) {
                 return postRatingLike(request, PathUtil.parseId(split[0]));
@@ -39,14 +40,14 @@ public class RatingController extends Controller {
             }
         }
 
-        if (request.getMethod().equals("DELETE")) {
+        if (request.getMethod().equals(Method.DELETE.getValue())) {
             // Platzhalter
             if (isDeleteRating(split)) {
                 return deleteRating(request, PathUtil.parseId(split[0]));
             }
         }
 
-        return info(Status.NOT_FOUND, "404 Not Found");
+        return info(Status.NOT_FOUND, Status.NOT_FOUND.getMessage());
 
     }
 
