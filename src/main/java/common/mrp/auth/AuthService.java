@@ -9,15 +9,16 @@ public class AuthService {
     // die den service implementiert
 
     private final UserRepository userRepository;
-    public AuthService() {
+
+    public AuthService(UserRepository userRepository) {
         this.userRepository = new UserRepository();
     }
 
-    public User registerUser(User user){
+    public User registerUser(User user) {
         return userRepository.save(user);
     }
 
-    public User loginUser(User user){
+    public User loginUser(User user) {
         return userRepository.save(user);
     }
 

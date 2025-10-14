@@ -8,8 +8,10 @@ import server.http.Response;
 import server.http.Status;
 
 public class LeaderboardController extends Controller {
-    public LeaderboardController() {
+    private final LeaderboardService leaderboardService;
+    public LeaderboardController(LeaderboardService leaderboardService) {
         super("/leaderboard");
+        this.leaderboardService = leaderboardService;
     }
 
     @Override
@@ -21,7 +23,7 @@ public class LeaderboardController extends Controller {
                 return getLeaderboard(request);
             }
         }
-        return info(Status.NOT_FOUND, Status.NOT_FOUND.getMessage());
+        return status(Status.NOT_FOUND);
 
     }
 
@@ -33,6 +35,6 @@ public class LeaderboardController extends Controller {
     //   ------ Methoden --------
     // GET
     private Response getLeaderboard(Request request) {
-        return ok("Leaderboard:");
+        return text("Leaderboard:");
     }
 }

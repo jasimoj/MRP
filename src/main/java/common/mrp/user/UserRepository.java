@@ -10,30 +10,29 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class UserRepository implements Repository<User, Integer> {
-    private final Map<Integer, User> byId = new ConcurrentHashMap<>();
-    private final AtomicInteger seq = new AtomicInteger(1); // einfache ID-Vergabe
-
+    private final List<User> users;
+    public UserRepository() {
+        users = new ArrayList<>();
+    }
     @Override
     public Optional<User> find(Integer id) {
-        return Optional.ofNullable(byId.get(id));
+        return Optional.ofNullable(users.get(id));
     }
 
     @Override
     public List<User> findAll() {
-        return new ArrayList<>(byId.values());
+        return users;
     }
 
     @Override
     public User save(User user) {
-        if (user.getId() == 0) { // oder < 1 – je nach Konvention
-            user.setId(seq.getAndIncrement());
-        }
-        byId.put(user.getId(), user);
+        users.add(user);
         return user;
     }
 
     @Override
-    public User delete(Integer id) {
-        return byId.remove(id);
+    public User delete(Integer integer) {
+        return null;
     }
+
 }

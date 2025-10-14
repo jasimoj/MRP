@@ -8,8 +8,11 @@ import server.http.Response;
 import server.http.Status;
 
 public class RatingController extends Controller {
-    public RatingController() {
+    private final RatingService ratingService;
+    public RatingController(RatingService ratingService) {
         super("/ratings");
+        this.ratingService = ratingService;
+
     }
 
     @Override
@@ -19,7 +22,7 @@ public class RatingController extends Controller {
 
         if (request.getMethod().equals(Method.GET.getValue())) {
             if (isBase(split)) {
-                return ok("Ich bin ein RatingsController");
+                return text("Ich bin ein RatingsController");
             }
         }
 
@@ -47,7 +50,7 @@ public class RatingController extends Controller {
             }
         }
 
-        return info(Status.NOT_FOUND, Status.NOT_FOUND.getMessage());
+        return text(Status.NOT_FOUND, Status.NOT_FOUND.getMessage());
 
     }
 
@@ -80,21 +83,21 @@ public class RatingController extends Controller {
     //   ------ Methoden --------
     // PUT
     private Response putUpdateRating(Request request, int ratingId) {
-        return ok("Updated Rating: " + ratingId);
+        return text("Updated Rating: " + ratingId);
     }
 
     // POST
     private Response postRatingLike(Request request, int ratingId) {
-        return ok("liked Rating with id: " + ratingId);
+        return text("liked Rating with id: " + ratingId);
     }
 
     private Response postRatingConfirm(Request request, int ratingId) {
-        return ok("Confirmed rating comment" + ratingId);
+        return text("Confirmed rating comment" + ratingId);
     }
 
     // DELETE
     private Response deleteRating(Request request, int ratingId) {
-        return ok("Deleted rating with id:" + ratingId);
+        return text("Deleted rating with id:" + ratingId);
     }
     
 }

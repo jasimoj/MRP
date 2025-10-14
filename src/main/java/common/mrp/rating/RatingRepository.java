@@ -1,5 +1,5 @@
 package common.mrp.rating;
 
-class RatingRepository {
+public class RatingRepository {
 
 }

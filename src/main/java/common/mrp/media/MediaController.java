@@ -7,9 +7,15 @@ import server.http.Request;
 import server.http.Response;
 import server.http.Status;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MediaController extends Controller {
-    public MediaController() {
+    private final MediaService mediaService;
+
+    public MediaController(MediaService mediaService) {
         super("/media");
+        this.mediaService = mediaService;
     }
 
     @Override
@@ -61,7 +67,7 @@ public class MediaController extends Controller {
             }
         }
 
-        return info(Status.NOT_FOUND, Status.NOT_FOUND.getMessage());
+        return text(Status.NOT_FOUND, Status.NOT_FOUND.getMessage());
 
     }
 
@@ -85,37 +91,38 @@ public class MediaController extends Controller {
     //   ------ Methoden --------
     // GET
     private Response getMediaById(Request request, int mediaId) {
-        return ok("Media with id: " + mediaId);
+        return r("Media with id: " + mediaId);
     }
 
     private Response getMedia(Request request) {
-        return ok("Media List:");
+        List<Media> mediaList = mediaService
+        return r("Media List:");
     }
 
     //PUT
     private Response putUpdateMedia(Request request, int UserId) {
-        return ok("Added User profile: " + UserId);
+        return r("Added User profile: " + UserId);
     }
 
     //POST
     private Response postCreateMedia(Request request) {
-        return ok("Created Media");
+        return r("Created Media");
     }
 
     private Response postMediaRating(Request request,  int mediaId) {
-        return ok("Rated Media with id: " + mediaId);
+        return r("Rated Media with id: " + mediaId);
     }
 
     private Response postMediaFavorite(Request request,  int mediaId) {
-        return ok("Marked media as favorite: " + mediaId);
+        return r("Marked media as favorite: " + mediaId);
     }
 
     //DELETE
     private Response deleteMedia(Request request, int mediaId) {
-        return ok("Deleted Media: " + mediaId);
+        return r("Deleted Media: " + mediaId);
     }
     private Response deleteMediaFavorite(Request request, int mediaId) {
-        return ok("Unmarked media as Favorite: " + mediaId);
+        return r("Unmarked media as Favorite: " + mediaId);
     }
 
 }

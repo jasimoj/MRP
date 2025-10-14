@@ -1,6 +1,7 @@
 package common.mrp.user;
 
 import common.Controller;
+import common.exception.EntityNotFoundException;
 import common.mrp.auth.AuthService;
 import common.routing.PathUtil;
 import server.http.Method;
@@ -8,14 +9,17 @@ import server.http.Request;
 import server.http.Response;
 import server.http.Status;
 
+import java.util.List;
+
+
 public class UserController extends Controller {
     private final UserService userService;
     private final AuthService authService;
 
-    public UserController() {
+    public UserController(UserService userService, AuthService authService) {
         super("/users");
-        userService = new UserService();
-        authService = new AuthService();
+        this.userService = userService;
+        this.authService = authService;
     }
 
     @Override
@@ -25,7 +29,7 @@ public class UserController extends Controller {
 
         if (request.getMethod().equals(Method.GET.getValue())) {
             if (isBase(split)) {
-                return ok("Ich bin ein UserController");
+                return text("Ich bin ein UserController");
             }
 
             if (isUserProfile(split)) {
@@ -60,7 +64,7 @@ public class UserController extends Controller {
             }
         }
 
-        return info(Status.NOT_FOUND, Status.NOT_FOUND.getMessage());
+        return text(Status.NOT_FOUND, Status.NOT_FOUND.getMessage());
 
     }
 
@@ -100,32 +104,35 @@ public class UserController extends Controller {
     //   ------ Methoden --------
     // GET
     private Response getUserProfile(Request request, int userId) {
-        return ok(userService.getUser(userId).getUsername());
+           User user =  userService.getUser(userId);
+           return json(user, Status.OK);
     }
 
     private Response getUserRatings(Request request, int userId) {
-        return ok("Ratings from User: " + userId);
+        return text("Ratings from User: " + userId);
     }
 
     private Response getUserFavorites(Request request, int userId) {
-        return ok("Favorites from User: " + userId);
+        return text("Favorites from User: " + userId);
     }
 
     private Response getUserRecommendations(Request request, int userId) {
-        return ok("Get recommendations for User: " + userId);
+        return text("Get recommendations for User: " + userId);
     }
 
     //PUT
     private Response putUserProfile(Request request, int userId) {
-        return ok("Added User profile: " + userId);
+        return text("Added User profile: " + userId);
     }
 
     //POST
     private Response postAuthRegister(Request request) {
-        return null;
+        User user = toObject(request.getBody(), User.class);
+        user = authService.registerUser(user);
+        return json(user, Status.CREATED);
     }
 
     private Response postAuthToken(Request request) {
-        return ok("User logged in ");
+        return text("User logged in ");
     }
 }

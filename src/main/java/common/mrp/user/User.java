@@ -1,23 +1,26 @@
 package common.mrp.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class User {
-    
+
     private int id;
     private String username;
     private String email;
-    private String passwordHash;
     private String favoriteGenre;
+    @JsonIgnore
+    private String password;
 
-    public User(){
+    public User() {
 
     }
 
-    public User(int id, String username, String email, String favoriteGenre, String passwordHash) {
+    public User(int id, String username, String email, String favoriteGenre, String password) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.favoriteGenre = favoriteGenre;
-        this.passwordHash = passwordHash;
+        this.password = password;
     }
 
     public int getId() {
@@ -31,16 +34,9 @@ public class User {
     public String getUsername() {
         return username;
     }
+
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
     }
 
     public String getFavoriteGenre() {
@@ -59,5 +55,11 @@ public class User {
         this.email = email;
     }
 
+    public String getPassword() {
+        return password;
+    }
 
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

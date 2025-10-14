@@ -7,16 +7,14 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
 
-    public UserService() {
-        this.userRepository = new UserRepository();
+    public UserService( UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     public User getUser(Integer id){
         return userRepository.find(id)
                 .orElseThrow(EntityNotFoundException::new);
     }
-
-
 
     public List<User> getAllUsers(){
         return userRepository.findAll();
