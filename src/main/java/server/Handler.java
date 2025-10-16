@@ -18,7 +18,7 @@ public class Handler implements HttpHandler {
 
     public Handler(Application application, RequestMapper requestMapper) {
         this.application = application;
-        this.requestMapper =  requestMapper;
+        this.requestMapper = requestMapper;
     }
 
     @Override
@@ -29,8 +29,22 @@ public class Handler implements HttpHandler {
     }
 
     private void send(HttpExchange exchange, Response response) throws IOException {
-        exchange.getResponseHeaders().set("Content-Type", response.getContentType());
-        byte[] bytes = response.getBody().getBytes(StandardCharsets.UTF_8);
+        int status = response.getStatus();
+
+        String ct = response.getContentType() == null ? "text/plain" : response.getContentType();
+        String body = response.getBody() == null ? "" : response.getBody();
+
+        exchange.getResponseHeaders().set("Content-Type", ct);
+
+        boolean noBody = status == 204 || status == 304
+                || "HEAD".equalsIgnoreCase(exchange.getRequestMethod());
+
+        if (noBody) {
+            exchange.sendResponseHeaders(status, -1); // kein Body senden
+            exchange.close();
+            return;
+        }
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         exchange.sendResponseHeaders(response.getStatus(), bytes.length);
         try (OutputStream os = exchange.getResponseBody()) {
             os.write(bytes);

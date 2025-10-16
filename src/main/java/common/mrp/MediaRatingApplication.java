@@ -1,18 +1,15 @@
 package common.mrp;
 
 import common.Application;
-import common.exception.EntityNotFoundException;
-import common.exception.ExceptionMapper;
-import common.exception.JsonConversionException;
-import common.exception.NotJsonBodyException;
+import common.exception.*;
 import common.mrp.auth.AuthService;
+import common.mrp.favorite.FavoriteService;
 import common.mrp.leaderboard.LeaderboardController;
 import common.mrp.leaderboard.LeaderboardService;
 import common.mrp.media.MediaRepository;
 import common.mrp.media.MediaService;
 import common.mrp.rating.RatingRepository;
 import common.mrp.rating.RatingService;
-import common.mrp.user.User;
 import common.mrp.user.UserRepository;
 import common.mrp.user.UserService;
 import common.routing.Router;
@@ -29,17 +26,39 @@ public class MediaRatingApplication implements Application {
     private final Router router;
     private final ExceptionMapper exceptionMapper;
     public MediaRatingApplication() {
-        this.router = new Router();
-        router.registerController(new MediaController(new MediaService(new MediaRepository())))
-                .registerController(new UserController(new UserService(new UserRepository()), new AuthService(new UserRepository())))
-                .registerController(new RatingController(new RatingService(new RatingRepository())))
-                .registerController(new LeaderboardController(new LeaderboardService()))
-                .registerController(new EchoController());
+        // ---- Repositories (einmalig, shared) ----
+        UserRepository  userRepo  = new UserRepository();
+        MediaRepository mediaRepo = new MediaRepository();
+        RatingRepository ratingRepo = new RatingRepository();
+
+        // ---- Services (einmalig, mit shared Repos) ----
+        UserService   userService   = new UserService(userRepo);
+        AuthService   authService   = new AuthService(userRepo);
+        MediaService  mediaService  = new MediaService(mediaRepo);
+        RatingService ratingService = new RatingService(ratingRepo, mediaRepo); //Macht das sinn so?
+        LeaderboardService leaderboardService = new LeaderboardService(); // Repo nach DB entscheidung
+        FavoriteService favoriteService = new FavoriteService(mediaRepo); // Repo nach DB entscheidung
+        // ---- Controller (einmalig, mit Services) ----
+        UserController   userController   = new UserController(userService, authService, ratingService);
+        MediaController  mediaController  = new MediaController(mediaService, ratingService, favoriteService);
+        RatingController ratingController = new RatingController(ratingService);
+        LeaderboardController leaderboardController = new LeaderboardController(leaderboardService);
+        EchoController   echoController   = new EchoController(); // Kann man eig weglassen
+
+        // ---- Router ----
+        this.router = new Router()
+                .registerController(mediaController)
+                .registerController(userController)
+                .registerController(ratingController)
+                .registerController(leaderboardController)
+                .registerController(echoController);
 
         this.exceptionMapper = new ExceptionMapper();
         this.exceptionMapper.register(EntityNotFoundException.class, Status.NOT_FOUND);
         this.exceptionMapper.register(NotJsonBodyException.class, Status.BAD_REQUEST);
         this.exceptionMapper.register(JsonConversionException.class, Status.INTERNAL_SERVER_ERROR);
+        this.exceptionMapper.register(CredentialMissmatchException.class, Status.UNAUTHORIZED);
+        this.exceptionMapper.register(MissingRequiredFieldsException.class, Status.BAD_REQUEST);
     }
 
     @Override

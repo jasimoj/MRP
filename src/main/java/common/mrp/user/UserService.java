@@ -16,17 +16,23 @@ public class UserService {
                 .orElseThrow(EntityNotFoundException::new);
     }
 
+    //Aktuell nur platzhalter bis DB da ist (falls es hier überhaupt gebraucht wird)
+    public User getUserFavorites(Integer id){
+        return userRepository.find(id)
+                .orElseThrow(EntityNotFoundException::new);
+    }
+
+    //Für leaderboard später?
     public List<User> getAllUsers(){
         return userRepository.findAll();
     }
 
-    public User updateUser(Integer id, User user){
+    public void updateUser(Integer id, UserProfileUpdate user){
         User updatedUser = userRepository.find(id)
                 .orElseThrow(EntityNotFoundException::new);
-        user.setUsername(user.getUsername());
-        user.setEmail(user.getEmail());
-        user.setFavoriteGenre(user.getFavoriteGenre());
-        return userRepository.save(updatedUser);
+        updatedUser.setEmail(user.getEmail());
+        updatedUser.setFavoriteGenre(user.getFavoriteGenre());
+        userRepository.save(updatedUser);
     }
 
     public User deleteUser(Integer id){

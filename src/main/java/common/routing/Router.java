@@ -10,13 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Router {
-
-//    Was macht der Router?
-//    Er nimmt einen Request entgegen.
-//    Er entscheidet, an welchen Controller er den Request weiterleitet.
-//    Er gibt am Ende wieder ein Response zurück.
-
-
     private final List<Controller> controllers = new ArrayList<>();
 
     public Router registerController(Controller controller) {
@@ -30,14 +23,8 @@ public class Router {
             String base = normalize(controller.getBasePath());
             if (matchesPrefix(requestPath, base)) {
                 String sub = subPath(requestPath, base);
-                try {
-                    return controller.handle(request, sub);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return info(Status.INTERNAL_SERVER_ERROR, e.getMessage());
-                }
+                return controller.handle(request, sub);
             }
-
         }
         return info(Status.NOT_FOUND, requestPath);
     }

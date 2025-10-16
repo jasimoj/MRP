@@ -2,12 +2,17 @@ package common.mrp.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class User {
 
     private int id;
     private String username;
     private String email;
     private String favoriteGenre;
+    private final java.util.Set<Integer> favoriteMediaIds = new java.util.HashSet<>(); //Für später?
+
     @JsonIgnore
     private String password;
 
@@ -22,6 +27,7 @@ public class User {
         this.favoriteGenre = favoriteGenre;
         this.password = password;
     }
+
 
     public int getId() {
         return id;
@@ -62,4 +68,9 @@ public class User {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public Set<Integer> getFavoriteMediaIds() {
+        return favoriteMediaIds;
+    }
+
 }

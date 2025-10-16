@@ -9,6 +9,7 @@ import server.http.Status;
 
 public class RatingController extends Controller {
     private final RatingService ratingService;
+
     public RatingController(RatingService ratingService) {
         super("/ratings");
         this.ratingService = ratingService;
@@ -36,17 +37,16 @@ public class RatingController extends Controller {
         if (request.getMethod().equals(Method.POST.getValue())) {
             // Platzhalter
             if (isRatingLike(split)) {
-                return postRatingLike(request, PathUtil.parseId(split[0]));
-            }
-            if (isUserLogin(split)) {
-                return postRatingConfirm(request, PathUtil.parseId(split[0]));
+                return postRatingLike(PathUtil.parseId(split[0]));
+            } if (isRatingConfirm(split)) {
+                return postRatingConfirm(PathUtil.parseId(split[0]));
             }
         }
 
         if (request.getMethod().equals(Method.DELETE.getValue())) {
             // Platzhalter
             if (isDeleteRating(split)) {
-                return deleteRating(request, PathUtil.parseId(split[0]));
+                return deleteRating(PathUtil.parseId(split[0]));
             }
         }
 
@@ -68,12 +68,8 @@ public class RatingController extends Controller {
         return split.length == 1 && PathUtil.isInteger(split[0]);
     }
 
-    private boolean isUserRegister(String[] split) {
-        return split.length == 1 && split[0].equals("register");
-    }
-
-    private boolean isUserLogin(String[] split) {
-        return split.length == 1 && split[0].equals("login");
+    private boolean isRatingConfirm(String[] split) {
+        return split.length == 2 && PathUtil.isInteger(split[0]) && split[1].equals("confirm");
     }
 
     private boolean isDeleteRating(String[] split) {
@@ -83,21 +79,28 @@ public class RatingController extends Controller {
     //   ------ Methoden --------
     // PUT
     private Response putUpdateRating(Request request, int ratingId) {
-        return text("Updated Rating: " + ratingId);
+        String body = readBodyAsString(request);
+        Rating rating = toObject(body, Rating.class);
+        ratingService.updateRating(ratingId, rating);
+        return text(Status.OK,"Rating updated");
     }
 
     // POST
-    private Response postRatingLike(Request request, int ratingId) {
-        return text("liked Rating with id: " + ratingId);
+    private Response postRatingLike( int ratingId) {
+        ratingService.likeRating(ratingId);
+        return text(Status.NO_CONTENT,"Rating liked");
     }
 
-    private Response postRatingConfirm(Request request, int ratingId) {
-        return text("Confirmed rating comment" + ratingId);
+    private Response postRatingConfirm(int ratingId) {
+        ratingService.confirmRatingComment(ratingId);
+        return text(Status.OK,"Comment confirmed");
     }
 
     // DELETE
-    private Response deleteRating(Request request, int ratingId) {
-        return text("Deleted rating with id:" + ratingId);
+    private Response deleteRating(int ratingId) {
+        ratingService.deleteRating(ratingId);
+        return text(Status.OK,"Comment confirmed");
+
     }
-    
+
 }

@@ -9,49 +9,20 @@ import java.util.Map;
 
 public class ExceptionMapper {
 
-    private final Map<Class<?>, Status> map;
+    private final Map<Class<? extends Throwable>, Status> map = new HashMap<>();
 
-    public ExceptionMapper() {
-        this.map = new HashMap<>();
+    public ExceptionMapper register(Class<? extends Throwable> type, Status status) {
+        map.put(type, status);
+        return this;
     }
 
-    public Response toResponse(Exception exception) {
-        Response response = new Response();
+    public Response toResponse(Throwable ex) {
+        Status status = map.getOrDefault(ex.getClass(), Status.INTERNAL_SERVER_ERROR);
 
-        /*
-        if (exception instanceof EntityNotFoundException) {
-            response.setStatus(Status.NOT_FOUND);
-            response.setContentType(ContentType.TEXT_PLAIN);
-            response.setBody(exception.getMessage());
-
-            return response;
-        }
-        */
-
-        /*
-        Annotation annotation = exception.getClass().getAnnotation(HttpStatus.class)
-        if (null != annotation) {
-            Status status = annotation.status()
-
-            // send status as response
-        }
-
-         */
-
-        Status status = map.get(exception.getClass());
-        if (null != status) {
-            status = Status.INTERNAL_SERVER_ERROR;
-        }
-
-
-        response.setStatus(status);
-        response.setContentType(ContentType.PLAIN_TEXT);
-        response.setBody(exception.getMessage());
-
-        return response;
-    }
-
-    public void register(Class<?> clazz, Status status) {
-        map.put(clazz, status);
+        Response r = new Response();
+        r.setStatus(status);
+        r.setContentType(ContentType.PLAIN_TEXT);
+        r.setBody(ex.getMessage() != null ? ex.getMessage() : status.getMessage());
+        return r;
     }
 }

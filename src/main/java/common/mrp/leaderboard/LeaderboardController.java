@@ -35,6 +35,7 @@ public class LeaderboardController extends Controller {
     //   ------ Methoden --------
     // GET
     private Response getLeaderboard(Request request) {
+        leaderboardService.getLeaderboard();
         return text("Leaderboard:");
     }
 }

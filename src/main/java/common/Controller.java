@@ -8,7 +8,10 @@ import server.http.Request;
 import server.http.Response;
 import server.http.Status;
 
+import java.nio.charset.StandardCharsets;
+
 public abstract class Controller {
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     private final String basePath;
 
@@ -27,7 +30,7 @@ public abstract class Controller {
         return text(Status.OK, text);
     }
 
-    protected Response text( Status status, String text) {
+    protected Response text(Status status, String text) {
         return r(status, ContentType.PLAIN_TEXT, text);
     }
 
@@ -35,35 +38,41 @@ public abstract class Controller {
         return text(status, status.getMessage());
     }
 
-    protected Response ok() {
-        return status(Status.OK);
+    protected String readBodyAsString(Request req) {
+        String body = req.getBody();
+        if (body == null || body.isBlank()) {
+            throw new NotJsonBodyException(new IllegalArgumentException("Request body is empty"));
+        }
+        return body;
     }
 
+
     protected <T> T toObject(String content, Class<T> valueType) {
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            return objectMapper.readValue(content, valueType);
+            if (content == null) {
+                throw new IllegalArgumentException("content is null");
+            }
+            return mapper.readValue(content, valueType);
         } catch (Exception ex) {
             throw new NotJsonBodyException(ex);
         }
     }
 
     protected Response json(Object o, Status status) {
-        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            String json = objectMapper.writeValueAsString(o);
+            String json = mapper.writeValueAsString(o);
             return r(status, ContentType.JSON, json);
         } catch (Exception ex) {
             throw new JsonConversionException(ex);
         }
     }
 
+
     private Response r(Status status, ContentType contentType, String body) {
         Response response = new Response();
         response.setStatus(status);
         response.setContentType(contentType);
         response.setBody(body);
-
         return response;
     }
 }
