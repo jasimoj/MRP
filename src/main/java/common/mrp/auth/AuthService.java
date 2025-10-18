@@ -10,9 +10,21 @@ import java.util.Optional;
 
 public class AuthService {
     private final UserRepository userRepository;
+    private static final String suffix = "-mrpToken";
+
 
     public AuthService(UserRepository userRepository) {
         this.userRepository = userRepository;
+    }
+
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
+    public int getUserIdByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new CredentialMissmatchException("Invalid token user"))
+                .getId();
     }
 
     public User registerUser(UserCredentials credentials) {
@@ -43,9 +55,27 @@ public class AuthService {
         return createToken(user.getUsername());
     }
 
-    public Token createToken(String username){
+    public Token createToken(String username) {
         Token token = new Token();
-        token.setToken(username+"-mrpToken");
+        token.setToken(username + "-mrpToken");
         return token;
+    }
+
+    public Optional<AuthPrincipal> verifyFromAuthorizationHeader(String authHeader) {
+        String token = extractBearer(authHeader);
+        if (token == null || !token.endsWith(suffix)) return Optional.empty();
+
+        String username = token.substring(0, token.length() - suffix.length());
+        if (username.isBlank()) return Optional.empty();
+
+        return userRepository.findByUsername(username)
+                .map(u -> new AuthPrincipal(u.getId(), u.getUsername()));
+    }
+
+    private String extractBearer(String auth){
+        if (auth == null) return null;
+        if (!auth.regionMatches(true, 0, "Bearer ", 0, 7)) return null;
+        String t = auth.substring(7).trim();
+        return t.isEmpty() ? null : t;
     }
 }

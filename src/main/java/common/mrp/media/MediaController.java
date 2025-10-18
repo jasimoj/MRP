@@ -1,6 +1,7 @@
 package common.mrp.media;
 
 import common.Controller;
+import common.mrp.auth.AuthService;
 import common.mrp.favorite.FavoriteService;
 import common.mrp.rating.Rating;
 import common.mrp.rating.RatingService;
@@ -16,12 +17,14 @@ public class MediaController extends Controller {
     private final MediaService mediaService;
     private final RatingService ratingService;
     private final FavoriteService favoriteService;
+    private final AuthService authService;
 
-    public MediaController(MediaService mediaService, RatingService ratingService, FavoriteService favoriteService) {
+    public MediaController(MediaService mediaService, RatingService ratingService, FavoriteService favoriteService, AuthService authService) {
         super("/media");
         this.mediaService = mediaService;
         this.ratingService = ratingService;
         this.favoriteService = favoriteService;
+        this.authService = authService;
     }
 
     @Override
@@ -56,7 +59,7 @@ public class MediaController extends Controller {
             }
 
             if (isMediaRatingFavorite(split)) {
-                return postMediaFavorite(PathUtil.parseId(split[0]));
+                return postMediaFavorite(request,PathUtil.parseId(split[0]));
             }
 
         }
@@ -65,11 +68,11 @@ public class MediaController extends Controller {
             // Platzhalter
 
             if (isMediaRatingFavorite(split)) {
-                return deleteMediaAsFavorite(PathUtil.parseId(split[0]));
+                return deleteMediaAsFavorite(request,PathUtil.parseId(split[0]));
             }
 
             if (isMediaWithId(split)) {
-                return deleteMedia(PathUtil.parseId(split[0]));
+                return deleteMedia(request,PathUtil.parseId(split[0]));
             }
         }
 
@@ -113,40 +116,52 @@ public class MediaController extends Controller {
 
     //POST
     private Response postCreateMedia(Request request) {
+        int currentUserId = requireAuthentication(request);
+
         MediaInput media = toObject(request.getBody(), MediaInput.class);
-        Media created = mediaService.createMedia(media);
+        Media created = mediaService.createMedia(media, currentUserId);
         return json(created, Status.CREATED);
     }
 
     private Response postRateMedia(Request request, int mediaId) {
+        int currentUserId = requireAuthentication(request);
+
         Rating rating = toObject(request.getBody(), Rating.class);
-        ratingService.rateMedia(mediaId, rating);
+        ratingService.rateMedia(mediaId, rating, currentUserId);
         return text(Status.CREATED, "Rating updated");
     }
 
-    private Response postMediaFavorite(int mediaId) {
+    private Response postMediaFavorite(Request request, int mediaId) {
         //wird implementiert, sobald die DB Struktur fertig ist und ich weiß in welcher Tabelle Favorites sind
-        favoriteService.markAsFavorite(mediaId);
+        int currentUserId = requireAuthentication(request);
+
+        favoriteService.markAsFavorite(mediaId, currentUserId);
         return text(Status.OK, "Marked as favorite");
     }
 
     //PUT
     private Response putUpdateMedia(Request request, int mediaId) {
+        int currentUserId = requireAuthentication(request);
+
         MediaInput media = toObject(request.getBody(), MediaInput.class);
-        mediaService.updateMedia(mediaId, media);
+        mediaService.updateMedia(mediaId, media, currentUserId);
         return text(Status.OK, "Media updated");
     }
 
 
     //DELETE
-    private Response deleteMediaAsFavorite(int mediaId) {
+    private Response deleteMediaAsFavorite(Request request, int mediaId) {
         //wird implementiert, sobald die DB Struktur fertig ist und ich weiß in welcher Tabelle Favorites sind
-        favoriteService.unmarkAsFavorite(mediaId);
+        int currentUserId = requireAuthentication(request);
+
+        favoriteService.unmarkAsFavorite(mediaId, currentUserId);
         return text(Status.NO_CONTENT, "Unmarked");
     }
 
-    private Response deleteMedia(int mediaId) {
-        mediaService.deleteMedia(mediaId);
+    private Response deleteMedia(Request request, int mediaId) {
+        int currentUserId = requireAuthentication(request);
+
+        mediaService.deleteMedia(mediaId, currentUserId);
         return text(Status.NO_CONTENT, "Media deleted");
     }
 

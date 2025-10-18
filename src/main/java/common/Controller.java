@@ -1,6 +1,8 @@
 package common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import common.exception.CredentialMissmatchException;
+import common.exception.ForbiddenException;
 import common.exception.JsonConversionException;
 import common.exception.NotJsonBodyException;
 import server.http.ContentType;
@@ -8,6 +10,7 @@ import server.http.Request;
 import server.http.Response;
 import server.http.Status;
 
+import javax.naming.AuthenticationException;
 import java.nio.charset.StandardCharsets;
 
 public abstract class Controller {
@@ -75,4 +78,27 @@ public abstract class Controller {
         response.setBody(body);
         return response;
     }
+
+    protected int requireAuthentication(Request request) {
+        Integer userId = request.getAuthUserId();
+        if (userId == null) {
+            throw new CredentialMissmatchException("Missing or invalid token");
+        }
+        return userId;
+    }
+
+    protected void checkAuthorizationByUserId(Request request, int expectedUserId) {
+        Integer current = requireAuthentication(request);
+        if (current != expectedUserId) {
+            throw new ForbiddenException("Not allowed to access this resource");
+        }
+    }
+
+    protected void checkAuthorizationByUsername(Request request, String expectedUsername){
+        String current = request.getAuthUsername();
+        if (current == null || !current.equals(expectedUsername)) {
+            throw new ForbiddenException("Not allowed to access this resource");
+        }
+    }
+
 }

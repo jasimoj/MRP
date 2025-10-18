@@ -11,7 +11,7 @@ public class User {
     private String username;
     private String email;
     private String favoriteGenre;
-    private final java.util.Set<Integer> favoriteMediaIds = new java.util.HashSet<>(); //Für später?
+    private final Set<Integer> favoriteMediaIds = new HashSet<>(); //Für später?
 
     @JsonIgnore
     private String password;

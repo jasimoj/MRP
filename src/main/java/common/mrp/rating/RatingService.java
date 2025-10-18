@@ -1,6 +1,7 @@
 package common.mrp.rating;
 
 import common.exception.EntityNotFoundException;
+import common.exception.ForbiddenException;
 import common.mrp.media.Media;
 import common.mrp.media.MediaRepository;
 import common.mrp.media.MediaService;
@@ -16,8 +17,8 @@ public class RatingService {
         this.mediaRepository = mediaRepository;
     }
 
-    public Rating getRating(Integer id) {
-        return ratingRepository.find(id)
+    public Rating getRating(int ratingId) {
+        return ratingRepository.find(ratingId)
                 .orElseThrow(EntityNotFoundException::new);
     }
 
@@ -26,32 +27,40 @@ public class RatingService {
         return ratingRepository.findAll();
     }
 
-    public Rating updateRating(Integer id, Rating rating) {
-        Rating updatedRating = ratingRepository.find(id)
+    public Rating updateRating(int ratingId, Rating rating, int currentUserId) {
+        Rating updatedRating = ratingRepository.find(ratingId)
                 .orElseThrow(EntityNotFoundException::new);
+        if (updatedRating.getUserId() != currentUserId) throw new ForbiddenException("Not your rating");
         updatedRating.setComment(rating.getComment());
         updatedRating.setStars(rating.getStars());
         return ratingRepository.save(updatedRating);
     }
 
-    public Rating rateMedia(Integer id, Rating rating) {
-        Media media = mediaRepository.find(id).orElseThrow(EntityNotFoundException::new);
+    public Rating rateMedia(int ratingId, Rating rating, int currentUserId) {
+        Media media = mediaRepository.find(ratingId).orElseThrow(EntityNotFoundException::new);
+        if (media.getCreatedByUserId() != currentUserId) throw new ForbiddenException("Not your media");
+
         return ratingRepository.save(rating);
 
     }
 
-    public Rating likeRating(Integer id) {
-        return ratingRepository.find(id)
+    public Rating likeRating(int ratingId, int currentUserId) {
+        Rating r = ratingRepository.find(ratingId)
                 .orElseThrow(EntityNotFoundException::new);
+        if (r.getUserId() != currentUserId) throw new ForbiddenException("Not your rating");
+        return ratingRepository.save(r);
     }
 
-    public Rating confirmRatingComment(Integer id) {
-        return ratingRepository.find(id)
+    public Rating confirmRatingComment(int ratingId, int currentUserId) {
+        Rating r= ratingRepository.find(ratingId)
                 .orElseThrow(EntityNotFoundException::new);
+        if (r.getUserId() != currentUserId) throw new ForbiddenException("Not your rating");
+        return ratingRepository.save(r);
     }
 
-    public Rating deleteRating(Integer id) {
-        return ratingRepository.delete(id);
-
+    public Rating deleteRating(int ratingId, int currentUserId) {
+        Rating r = ratingRepository.find(ratingId).orElseThrow(EntityNotFoundException::new);
+        if (r.getUserId() != currentUserId) throw new ForbiddenException("Not your rating");
+        return ratingRepository.delete(ratingId);
     }
 }

@@ -1,7 +1,9 @@
 package common.mrp.user;
 
 import common.Controller;
+import common.exception.CredentialMissmatchException;
 import common.exception.EntityNotFoundException;
+import common.exception.ForbiddenException;
 import common.mrp.auth.AuthService;
 import common.mrp.auth.Token;
 import common.mrp.auth.UserCredentials;
@@ -39,11 +41,11 @@ public class UserController extends Controller {
             }
 
             if (isUserProfile(split)) {
-                return getUserProfile(PathUtil.parseId(split[0]));
+                return getUserProfile(request, PathUtil.parseId(split[0]));
             }
 
             if (isUserRatings(split)) {
-                return getUserRatings(PathUtil.parseId(split[0]));
+                return getUserRatings(request, PathUtil.parseId(split[0]));
             }
 
             if (isUserFavorites(split)) {
@@ -109,12 +111,17 @@ public class UserController extends Controller {
 
     //   ------ Methoden --------
     // GET
-    private Response getUserProfile(int userId) {
-           User user =  userService.getUser(userId);
-           return json(user, Status.OK);
+    private Response getUserProfile(Request request, int userId) {
+        System.out.println("[AUTH] authUserId=" + request.getAuthUserId()
+                + ", authUsername=" + request.getAuthUsername());
+        checkAuthorizationByUserId(request, userId);
+        User user = userService.getUser(userId);
+        return json(user, Status.OK);
     }
 
-    private Response getUserRatings(int userId) {
+
+    private Response getUserRatings(Request request, int userId) {
+        checkAuthorizationByUserId(request, userId);
         userService.getUser(userId);
         Rating rating = ratingService.getRating(userId);
         return json(rating, Status.OK);
@@ -122,18 +129,22 @@ public class UserController extends Controller {
 
     private Response getUserFavorites(Request request, int userId) {
         // Was soll da zurück gegeben werden? Macht das jetzt schon Sinn etwas zu implementieren ohne Datenbank??
+        checkAuthorizationByUserId(request, userId);
         User user = userService.getUser(userId);
         return json(user, Status.OK);
     }
 
     private Response getUserRecommendations(Request request, int userId) {
         // Was soll da zurück gegeben werden? Macht das jetzt schon Sinn etwas zu implementieren ohne Datenbank??
-        User user =  userService.getUser(userId);
+        checkAuthorizationByUserId(request, userId);
+        User user = userService.getUser(userId);
         return json(user, Status.OK);
     }
 
     //PUT
     private Response putUpdateUserProfile(Request request, int userId) {
+        checkAuthorizationByUserId(request, userId);
+
         UserProfileUpdate user = toObject(request.getBody(), UserProfileUpdate.class);
         userService.updateUser(userId, user);
         return text(Status.OK, "Profile updated");

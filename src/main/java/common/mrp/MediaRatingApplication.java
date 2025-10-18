@@ -3,6 +3,7 @@ package common.mrp;
 import common.Application;
 import common.exception.*;
 import common.mrp.auth.AuthService;
+import common.mrp.auth.Authenticator;
 import common.mrp.favorite.FavoriteService;
 import common.mrp.leaderboard.LeaderboardController;
 import common.mrp.leaderboard.LeaderboardService;
@@ -25,6 +26,8 @@ public class MediaRatingApplication implements Application {
 
     private final Router router;
     private final ExceptionMapper exceptionMapper;
+    private final Authenticator authenticator;
+
     public MediaRatingApplication() {
         // ---- Repositories (einmalig, shared) ----
         UserRepository  userRepo  = new UserRepository();
@@ -38,10 +41,13 @@ public class MediaRatingApplication implements Application {
         RatingService ratingService = new RatingService(ratingRepo, mediaRepo); //Macht das sinn so?
         LeaderboardService leaderboardService = new LeaderboardService(); // Repo nach DB entscheidung
         FavoriteService favoriteService = new FavoriteService(mediaRepo); // Repo nach DB entscheidung
+
+        this.authenticator = authService::verifyFromAuthorizationHeader;
+
         // ---- Controller (einmalig, mit Services) ----
         UserController   userController   = new UserController(userService, authService, ratingService);
-        MediaController  mediaController  = new MediaController(mediaService, ratingService, favoriteService);
-        RatingController ratingController = new RatingController(ratingService);
+        MediaController  mediaController  = new MediaController(mediaService, ratingService, favoriteService, authService);
+        RatingController ratingController = new RatingController(ratingService, authService);
         LeaderboardController leaderboardController = new LeaderboardController(leaderboardService);
         EchoController   echoController   = new EchoController(); // Kann man eig weglassen
 
@@ -59,6 +65,11 @@ public class MediaRatingApplication implements Application {
         this.exceptionMapper.register(JsonConversionException.class, Status.INTERNAL_SERVER_ERROR);
         this.exceptionMapper.register(CredentialMissmatchException.class, Status.UNAUTHORIZED);
         this.exceptionMapper.register(MissingRequiredFieldsException.class, Status.BAD_REQUEST);
+        this.exceptionMapper.register(ForbiddenException.class, Status.FORBIDDEN);
+    }
+
+    public Authenticator getAuthenticator() {
+        return authenticator;
     }
 
     @Override

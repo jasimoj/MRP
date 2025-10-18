@@ -1,6 +1,7 @@
 package common.mrp.rating;
 
 import common.Controller;
+import common.mrp.auth.AuthService;
 import common.routing.PathUtil;
 import server.http.Method;
 import server.http.Request;
@@ -9,10 +10,12 @@ import server.http.Status;
 
 public class RatingController extends Controller {
     private final RatingService ratingService;
+    private final AuthService authService;
 
-    public RatingController(RatingService ratingService) {
+    public RatingController(RatingService ratingService, AuthService authService) {
         super("/ratings");
         this.ratingService = ratingService;
+        this.authService = authService;
 
     }
 
@@ -37,16 +40,17 @@ public class RatingController extends Controller {
         if (request.getMethod().equals(Method.POST.getValue())) {
             // Platzhalter
             if (isRatingLike(split)) {
-                return postRatingLike(PathUtil.parseId(split[0]));
-            } if (isRatingConfirm(split)) {
-                return postRatingConfirm(PathUtil.parseId(split[0]));
+                return postRatingLike(request, PathUtil.parseId(split[0]));
+            }
+            if (isRatingConfirm(split)) {
+                return postRatingConfirm(request, PathUtil.parseId(split[0]));
             }
         }
 
         if (request.getMethod().equals(Method.DELETE.getValue())) {
             // Platzhalter
             if (isDeleteRating(split)) {
-                return deleteRating(PathUtil.parseId(split[0]));
+                return deleteRating(request, PathUtil.parseId(split[0]));
             }
         }
 
@@ -79,27 +83,34 @@ public class RatingController extends Controller {
     //   ------ Methoden --------
     // PUT
     private Response putUpdateRating(Request request, int ratingId) {
+        int currentUserId = requireAuthentication(request);
         String body = readBodyAsString(request);
         Rating rating = toObject(body, Rating.class);
-        ratingService.updateRating(ratingId, rating);
-        return text(Status.OK,"Rating updated");
+        ratingService.updateRating(ratingId, rating, currentUserId);
+        return text(Status.OK, "Rating updated");
     }
 
     // POST
-    private Response postRatingLike( int ratingId) {
-        ratingService.likeRating(ratingId);
-        return text(Status.NO_CONTENT,"Rating liked");
+    private Response postRatingLike(Request request, int ratingId) {
+        int currentUserId = requireAuthentication(request);
+
+        ratingService.likeRating(ratingId, currentUserId);
+        return text(Status.NO_CONTENT, "Rating liked");
     }
 
-    private Response postRatingConfirm(int ratingId) {
-        ratingService.confirmRatingComment(ratingId);
-        return text(Status.OK,"Comment confirmed");
+    private Response postRatingConfirm(Request request, int ratingId) {
+        int currentUserId = requireAuthentication(request);
+
+        ratingService.confirmRatingComment(ratingId, currentUserId);
+        return text(Status.OK, "Comment confirmed");
     }
 
     // DELETE
-    private Response deleteRating(int ratingId) {
-        ratingService.deleteRating(ratingId);
-        return text(Status.OK,"Comment confirmed");
+    private Response deleteRating(Request request, int ratingId) {
+        int currentUserId = requireAuthentication(request);
+
+        ratingService.deleteRating(ratingId, currentUserId);
+        return text(Status.OK, "Comment confirmed");
 
     }
 
