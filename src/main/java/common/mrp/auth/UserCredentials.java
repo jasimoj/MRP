@@ -1,24 +1,19 @@
+// common/mrp/auth/UserCredentials.java
 package common.mrp.auth;
 
 public class UserCredentials {
     private String username;
     private String password;
 
-    public String getUsername() {
-        return username;
-    }
+    public UserCredentials() { }
 
-    public void setUsername(String username) {
+    public UserCredentials(String username, String password) {
         this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
         this.password = password;
     }
 
-    public UserCredentials() {}
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+    public void setUsername(String u) { this.username = u; }
+    public void setPassword(String p) { this.password = p; }
 }

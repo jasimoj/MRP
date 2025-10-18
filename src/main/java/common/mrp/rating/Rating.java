@@ -1,5 +1,7 @@
 package common.mrp.rating;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class Rating {
     private int id;
     private int userId; //für später
@@ -69,11 +71,20 @@ public class Rating {
         this.confirmed = confirmed;
     }
 
+    @JsonIgnore
     public long getTimestamp() {
         return timestamp;
     }
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("timestamp")
+    public String getTimestampIso() {
+        return java.time.Instant.ofEpochMilli(timestamp)
+                .atZone(java.time.ZoneId.of("Europe/Vienna"))
+                .toLocalDateTime()
+                .toString();
     }
 }

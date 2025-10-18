@@ -112,8 +112,6 @@ public class UserController extends Controller {
     //   ------ Methoden --------
     // GET
     private Response getUserProfile(Request request, int userId) {
-        System.out.println("[AUTH] authUserId=" + request.getAuthUserId()
-                + ", authUsername=" + request.getAuthUsername());
         checkAuthorizationByUserId(request, userId);
         User user = userService.getUser(userId);
         return json(user, Status.OK);

@@ -57,7 +57,7 @@ public class AuthService {
 
     public Token createToken(String username) {
         Token token = new Token();
-        token.setToken(username + "-mrpToken");
+        token.setToken(username + suffix);
         return token;
     }
 

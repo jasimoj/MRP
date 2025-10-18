@@ -73,4 +73,11 @@ public class User {
         return favoriteMediaIds;
     }
 
+    public void addFavoriteMedia(Integer mediaId) {
+        favoriteMediaIds.add(mediaId);
+    }
+    public void removeFavoriteMedia(Integer mediaId) {
+        favoriteMediaIds.remove(mediaId);
+    }
+
 }

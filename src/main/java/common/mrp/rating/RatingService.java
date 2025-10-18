@@ -6,7 +6,10 @@ import common.mrp.media.Media;
 import common.mrp.media.MediaRepository;
 import common.mrp.media.MediaService;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 public class RatingService {
     private final RatingRepository ratingRepository;
@@ -39,7 +42,11 @@ public class RatingService {
     public Rating rateMedia(int ratingId, Rating rating, int currentUserId) {
         Media media = mediaRepository.find(ratingId).orElseThrow(EntityNotFoundException::new);
         if (media.getCreatedByUserId() != currentUserId) throw new ForbiddenException("Not your media");
-
+        rating.setMediaId(media.getId());
+        rating.setUserId(currentUserId);
+        rating.setTimestamp(System.currentTimeMillis());
+        media.setRatingsCount(media.getRatingsCount() + 1);
+        mediaRepository.save(media);
         return ratingRepository.save(rating);
 
     }
@@ -47,7 +54,7 @@ public class RatingService {
     public Rating likeRating(int ratingId, int currentUserId) {
         Rating r = ratingRepository.find(ratingId)
                 .orElseThrow(EntityNotFoundException::new);
-        if (r.getUserId() != currentUserId) throw new ForbiddenException("Not your rating");
+        r.setLikesCount(r.getLikesCount() + 1);
         return ratingRepository.save(r);
     }
 
@@ -55,6 +62,7 @@ public class RatingService {
         Rating r= ratingRepository.find(ratingId)
                 .orElseThrow(EntityNotFoundException::new);
         if (r.getUserId() != currentUserId) throw new ForbiddenException("Not your rating");
+        r.setConfirmed(true);
         return ratingRepository.save(r);
     }
 

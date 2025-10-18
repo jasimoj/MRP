@@ -40,7 +40,7 @@ public class MediaRatingApplication implements Application {
         MediaService  mediaService  = new MediaService(mediaRepo);
         RatingService ratingService = new RatingService(ratingRepo, mediaRepo); //Macht das sinn so?
         LeaderboardService leaderboardService = new LeaderboardService(); // Repo nach DB entscheidung
-        FavoriteService favoriteService = new FavoriteService(mediaRepo); // Repo nach DB entscheidung
+        FavoriteService favoriteService = new FavoriteService(mediaRepo, userRepo); // Repo nach DB entscheidung
 
         this.authenticator = authService::verifyFromAuthorizationHeader;
 

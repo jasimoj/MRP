@@ -38,9 +38,11 @@ public class MediaRepository implements Repository<Media, Integer> {
                 existing.setTitle(media.getTitle());
                 existing.setDescription(media.getDescription());
                 existing.setGenres(media.getGenres());
-                existing.setGenres(media.getGenres());
+                existing.setRatingsCount(media.getRatingsCount());
+                existing.setMediaType(media.getMediaType());
                 existing.setReleaseYear(media.getReleaseYear());
                 existing.setAgeRestriction(media.getAgeRestriction());
+                existing.setAvgScore(media.getAvgScore());
             }, () -> mediaList.add(media));
         }
         return media;
