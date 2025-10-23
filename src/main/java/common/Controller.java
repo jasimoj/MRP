@@ -10,9 +10,6 @@ import server.http.Request;
 import server.http.Response;
 import server.http.Status;
 
-import javax.naming.AuthenticationException;
-import java.nio.charset.StandardCharsets;
-
 public abstract class Controller {
     private static final ObjectMapper mapper = new ObjectMapper();
 

@@ -40,7 +40,7 @@ public class Request {
 
     public void setAuthUserId(Integer authUserId) {
         this.authUserId = authUserId;
-    }  // ✅
+    }
 
     public String getAuthUsername() {
         return authUsername;
@@ -48,5 +48,5 @@ public class Request {
 
     public void setAuthUsername(String authUsername) {
         this.authUsername = authUsername;
-    } // ✅
+    }
 }
