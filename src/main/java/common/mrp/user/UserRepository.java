@@ -1,7 +1,12 @@
 package common.mrp.user;
 
+import common.ConnectionPool;
 import common.database.Repository;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,12 +17,39 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class UserRepository implements Repository<User, Integer> {
     private final List<User> users;
     private int firstIdForNow = 1;
-    public UserRepository() {
+    private final ConnectionPool connectionPool;
+
+    private static final String SELECT_BY_ID
+            = "SELECT * FROM todos WHERE id = ?";
+
+    public UserRepository(ConnectionPool connectionPool) {
+        this.connectionPool = connectionPool;
         users = new ArrayList<>();
     }
+
     @Override
     public Optional<User> find(Integer id) {
-        return users.stream().filter(u -> u.getId() == id).findFirst();
+        try(Connection conn = connectionPool.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(SELECT_BY_ID)){
+
+            pstmt.setInt(1, id);
+
+            try (ResultSet rs = pstmt.getResultSet()) {
+                if (!rs.next()) {
+                    return Optional.empty();
+                }
+
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setUsername(rs.getString("username"));
+                user.setEmail(rs.getString("email"));
+                user.setFavoriteGenre(rs.getString("favoriteGenre"));
+
+                return Optional.of(user);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

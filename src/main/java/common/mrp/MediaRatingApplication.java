@@ -1,6 +1,7 @@
 package common.mrp;
 
 import common.Application;
+import common.ConnectionPool;
 import common.exception.*;
 import common.mrp.auth.AuthService;
 import common.mrp.auth.Authenticator;
@@ -27,12 +28,23 @@ public class MediaRatingApplication implements Application {
     private final Router router;
     private final ExceptionMapper exceptionMapper;
     private final Authenticator authenticator;
+    private final ConnectionPool connectionPool;
+
+
 
     public MediaRatingApplication() {
+        this.connectionPool = new ConnectionPool(
+                "postgresql",
+                "localhost",
+                5432,
+                "swen1user",
+                "swen1db", // secretManager.get("DB_PW")
+                "mrpdb"
+        );
         // ---- Repositories (einmalig, shared) ----
-        UserRepository  userRepo  = new UserRepository();
-        MediaRepository mediaRepo = new MediaRepository();
-        RatingRepository ratingRepo = new RatingRepository();
+        UserRepository  userRepo  = new UserRepository(connectionPool);
+        MediaRepository mediaRepo = new MediaRepository(connectionPool);
+        RatingRepository ratingRepo = new RatingRepository(connectionPool);
 
         // ---- Services (einmalig, mit shared Repos) ----
         UserService   userService   = new UserService(userRepo);
@@ -66,6 +78,7 @@ public class MediaRatingApplication implements Application {
         this.exceptionMapper.register(CredentialMissmatchException.class, Status.UNAUTHORIZED);
         this.exceptionMapper.register(MissingRequiredFieldsException.class, Status.BAD_REQUEST);
         this.exceptionMapper.register(ForbiddenException.class, Status.FORBIDDEN);
+
     }
 
     public Authenticator getAuthenticator() {

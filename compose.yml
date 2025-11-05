@@ -1,0 +1,14 @@
+services:
+  postgresdb:
+    image: postgres:18.0
+    environment:
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_USER: admin
+      POSTGRES_DB: mrpdb
+    ports:
+      - 5432:5432
+    volumes:
+      - swen1v:/var/lib/postgresql/data
+
+volumes:
+  swen1v:

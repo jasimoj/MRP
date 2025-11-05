@@ -25,14 +25,13 @@
 							"raw": "{\n  \"username\": \"user1\",\n  \"password\": \"pass123\"\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/users/register",
+							"raw": "http://localhost:8080/users/register",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "8080",
 							"path": [
-								"api",
 								"users",
 								"register"
 							]
@@ -55,16 +54,15 @@
 							"raw": "{\n  \"username\": \"user1\",\n  \"password\": \"pass123\"\n}"
 						},
 						"url": {
-							"raw": "http://localhost:8080/api/users/login",
+							"raw": "http://localhost:8080/users/token",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
 							"port": "8080",
 							"path": [
-								"api",
 								"users",
-								"login"
+								"token"
 							]
 						}
 					},
