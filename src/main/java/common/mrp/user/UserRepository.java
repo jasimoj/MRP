@@ -15,72 +15,174 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class UserRepository implements Repository<User, Integer> {
-    private final List<User> users;
-    private int firstIdForNow = 1;
     private final ConnectionPool connectionPool;
 
     private static final String SELECT_BY_ID
-            = "SELECT * FROM todos WHERE id = ?";
+            = "SELECT id, username, email, password FROM user_mrp WHERE id = ?";
+
+    private static final String SELECT_ALL =
+            "SELECT id, username, email, password FROM user_mrp ORDER BY id";
+
+    private static final String SELECT_BY_USERNAME =
+            "SELECT id, username, email, password FROM user_mrp WHERE username = ?";
+
+    //INSERT (liefert neuen PK zurück)
+    private static final String INSERT_USER =
+            "INSERT INTO user_mrp (username, email, password) VALUES (?, ?, ?) RETURNING id, username, email, password";
+
+    private static final String UPDATE_USER =
+            "UPDATE user_mrp SET username = ?, email = ?, password = ? WHERE id = ?";
+
+    private static final String DELETE_USER =
+            "DELETE FROM user_mrp WHERE id = ?";
 
     public UserRepository(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
-        users = new ArrayList<>();
+    }
+
+    private static User map(ResultSet rs) throws SQLException {
+        User u = new User();
+        u.setId(rs.getInt("id"));
+        u.setUsername(rs.getString("username"));
+        u.setEmail(rs.getString("email"));
+        u.setPassword(rs.getString("password"));
+        return u;
     }
 
     @Override
     public Optional<User> find(Integer id) {
-        try(Connection conn = connectionPool.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(SELECT_BY_ID)){
+        try (Connection conn = connectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID)) {
 
-            pstmt.setInt(1, id);
+            ps.setInt(1, id);
 
-            try (ResultSet rs = pstmt.getResultSet()) {
-                if (!rs.next()) {
-                    return Optional.empty();
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(map(rs));
                 }
-
-                User user = new User();
-                user.setId(rs.getInt("id"));
-                user.setUsername(rs.getString("username"));
-                user.setEmail(rs.getString("email"));
-                user.setFavoriteGenre(rs.getString("favoriteGenre"));
-
-                return Optional.of(user);
+                return Optional.empty();
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("find failed", e);
         }
     }
 
     @Override
     public List<User> findAll() {
-        return users;
+        try (Connection conn = connectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(SELECT_ALL);
+             ResultSet rs = ps.executeQuery()) {
+
+            List<User> list = new ArrayList<>();
+            while (rs.next()) {
+                list.add(map(rs));
+            }
+            return list;
+        } catch (SQLException e) {
+            throw new RuntimeException("findAll failed", e);
+        }
     }
 
     @Override
     public User save(User user) {
-        if (user.getId() == 0) { // neue ID, wenn noch keine gesetzt
-            user.setId(firstIdForNow++);
-            users.add(user);
-        } else {
-            // vorhandenen ersetzen
-            find(user.getId()).ifPresentOrElse(existing -> {
-                existing.setUsername(user.getUsername());
-                existing.setEmail(user.getEmail());
-                existing.setFavoriteGenre(user.getFavoriteGenre());
-                existing.setPassword(user.getPassword());
-            }, () -> users.add(user));
+        if (user.getId() == 0) {
+            // **INSERT (neuer User)**
+            try (Connection conn = connectionPool.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(INSERT_USER)) {
+
+                ps.setString(1, user.getUsername());
+
+                if (user.getEmail() == null) {
+                    ps.setNull(2, java.sql.Types.VARCHAR);
+                } else {
+                    ps.setString(2, user.getEmail());
+                }
+
+                ps.setString(3, user.getPassword());
+
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        // Wir MAPPEN ALLE FELDER AUS DEM DB-RECORD
+                        User result = new User();
+                        result.setId(rs.getInt("id"));
+                        result.setUsername(rs.getString("username"));
+                        result.setEmail(rs.getString("email"));
+                        result.setPassword(rs.getString("password"));
+                        return result;
+                    }
+                }
+
+                throw new RuntimeException("Unexpected: INSERT returned no row");
+
+            } catch (SQLException e) {
+                // UNIQUE Constraint Fehlermeldung schöner machen:
+                if ("23505".equals(e.getSQLState())) {
+                    throw new RuntimeException("Username already exists");
+                }
+                throw new RuntimeException("insert user failed: " + e.getMessage(), e);
+            }
         }
-        return user;
+
+        // **UPDATE (falls später gebraucht)**
+        try (Connection conn = connectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "UPDATE user_mrp SET username = ?, email = ?, password = ? WHERE id = ? RETURNING id, username, email, password"
+             )) {
+
+            ps.setString(1, user.getUsername());
+            if (user.getEmail() == null) ps.setNull(2, java.sql.Types.VARCHAR);
+            else ps.setString(2, user.getEmail());
+            ps.setString(3, user.getPassword());
+            ps.setInt(4, user.getId());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    User result = new User();
+                    result.setId(rs.getInt("id"));
+                    result.setUsername(rs.getString("username"));
+                    result.setEmail(rs.getString("email"));
+                    result.setPassword(rs.getString("password"));
+                    return result;
+                }
+            }
+            throw new RuntimeException("update returned no row (user not found?)");
+
+        } catch (SQLException e) {
+            throw new RuntimeException("update user failed", e);
+        }
     }
 
     @Override
     public User delete(Integer id) {
-       return null; // Wird nicht gebraucht, refactor?
+        Optional<User> existing = find(id);
+        if (existing.isEmpty()) return null;
+
+        try (Connection conn = connectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(DELETE_USER)) {
+
+            ps.setInt(1, id);
+            ps.executeUpdate();
+            return existing.get();
+
+        } catch (SQLException e) {
+            throw new RuntimeException("delete failed for id=" + id, e);
+        }
     }
 
     public Optional<User> findByUsername(String username) {
-        if (username == null) return Optional.empty();
-        return users.stream().filter(u -> username.equals(u.getUsername())).findFirst();
+        if (username == null) {
+            return Optional.empty();
+        }
+        try (Connection conn = connectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(SELECT_BY_USERNAME)) {
+
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return Optional.of(map(rs));
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("findByUsername failed: " + username, e);
+        }
     }
 }

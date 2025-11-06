@@ -37,14 +37,14 @@ public class MediaRatingApplication implements Application {
                 "postgresql",
                 "localhost",
                 5432,
-                "swen1user",
-                "swen1db", // secretManager.get("DB_PW")
+                "admin",
+                "admin123",
                 "mrpdb"
         );
         // ---- Repositories (einmalig, shared) ----
         UserRepository  userRepo  = new UserRepository(connectionPool);
-        MediaRepository mediaRepo = new MediaRepository(connectionPool);
-        RatingRepository ratingRepo = new RatingRepository(connectionPool);
+        MediaRepository mediaRepo = new MediaRepository();
+        RatingRepository ratingRepo = new RatingRepository();
 
         // ---- Services (einmalig, mit shared Repos) ----
         UserService   userService   = new UserService(userRepo);

@@ -36,7 +36,6 @@ public class AuthService {
         user.setUsername(credentials.getUsername());
         user.setPassword(credentials.getPassword());
         user.setEmail(null);
-        user.setFavoriteGenre(null);
         return userRepository.save(user);
     }
 
