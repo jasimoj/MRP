@@ -43,7 +43,7 @@ public class MediaRatingApplication implements Application {
         );
         // ---- Repositories (einmalig, shared) ----
         UserRepository  userRepo  = new UserRepository(connectionPool);
-        MediaRepository mediaRepo = new MediaRepository();
+        MediaRepository mediaRepo = new MediaRepository(connectionPool);
         RatingRepository ratingRepo = new RatingRepository();
 
         // ---- Services (einmalig, mit shared Repos) ----

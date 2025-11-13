@@ -26,7 +26,6 @@ public class UserRepository implements Repository<User, Integer> {
     private static final String SELECT_BY_USERNAME =
             "SELECT id, username, email, password FROM user_mrp WHERE username = ?";
 
-    //INSERT (liefert neuen PK zurück)
     private static final String INSERT_USER =
             "INSERT INTO user_mrp (username, email, password) VALUES (?, ?, ?) RETURNING id, username, email, password";
 
@@ -125,9 +124,7 @@ public class UserRepository implements Repository<User, Integer> {
 
         // **UPDATE (falls später gebraucht)**
         try (Connection conn = connectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "UPDATE user_mrp SET username = ?, email = ?, password = ? WHERE id = ? RETURNING id, username, email, password"
-             )) {
+             PreparedStatement ps = conn.prepareStatement(UPDATE_USER)) {
 
             ps.setString(1, user.getUsername());
             if (user.getEmail() == null) ps.setNull(2, java.sql.Types.VARCHAR);
