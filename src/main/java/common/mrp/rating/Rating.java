@@ -10,7 +10,7 @@ public class Rating {
     private int stars;
     private int likesCount; //für später
     private boolean confirmed; //für später
-    private long timestamp; //für später
+    private long createdAt; //für später
 
     public Rating() {
     }
@@ -72,17 +72,17 @@ public class Rating {
     }
 
     @JsonIgnore
-    public long getTimestamp() {
-        return timestamp;
+    public long getCreatedAt() {
+        return createdAt;
     }
 
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
+    public void setCreatedAt(long createdAt) {
+        this.createdAt = createdAt;
     }
 
     @com.fasterxml.jackson.annotation.JsonProperty("timestamp")
     public String getTimestampIso() {
-        return java.time.Instant.ofEpochMilli(timestamp)
+        return java.time.Instant.ofEpochMilli(createdAt)
                 .atZone(java.time.ZoneId.of("Europe/Vienna"))
                 .toLocalDateTime()
                 .toString();
