@@ -10,4 +10,6 @@ public interface Repository<T,ID> {
     List<T> findAll();
     T save(T item);
     T delete(ID id);
+
+    String SQL_ALREADY_EXISTS_CODE = "23505";
 }

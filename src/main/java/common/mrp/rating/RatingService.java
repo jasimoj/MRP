@@ -22,7 +22,7 @@ public class RatingService {
     }
 
     public Rating getAllRatingsFromMedia(int mediaId) {
-        return ratingRepository.find()
+        return ratingRepository.find(mediaId)
                 .orElseThrow(EntityNotFoundException::new);
     }
 

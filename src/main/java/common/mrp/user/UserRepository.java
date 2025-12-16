@@ -18,22 +18,22 @@ public class UserRepository implements Repository<User, Integer> {
     private final ConnectionPool connectionPool;
 
     private static final String SELECT_BY_ID
-            = "SELECT id, username, email, password FROM user_mrp WHERE id = ?";
+            = "SELECT id, username, email, password FROM users WHERE id = ?";
 
     private static final String SELECT_ALL =
-            "SELECT id, username, email, password FROM user_mrp ORDER BY id";
+            "SELECT id, username, email, password FROM users ORDER BY id";
 
     private static final String SELECT_BY_USERNAME =
-            "SELECT id, username, email, password FROM user_mrp WHERE username = ?";
+            "SELECT id, username, email, password FROM users WHERE username = ?";
 
     private static final String INSERT_USER =
-            "INSERT INTO user_mrp (username, email, password) VALUES (?, ?, ?) RETURNING id, username, email, password";
+            "INSERT INTO users (username, email, password) VALUES (?, ?, ?) RETURNING id, username, email, password";
 
     private static final String UPDATE_USER =
-            "UPDATE user_mrp SET username = ?, email = ?, password = ? WHERE id = ?";
+            "UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?";
 
     private static final String DELETE_USER =
-            "DELETE FROM user_mrp WHERE id = ?";
+            "DELETE FROM users WHERE id = ?";
 
     public UserRepository(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
@@ -115,7 +115,7 @@ public class UserRepository implements Repository<User, Integer> {
 
             } catch (SQLException e) {
                 // UNIQUE Constraint Fehlermeldung schöner machen:
-                if ("23505".equals(e.getSQLState())) {
+                if (SQL_ALREADY_EXISTS_CODE.equals(e.getSQLState())) {
                     throw new RuntimeException("Username already exists");
                 }
                 throw new RuntimeException("insert user failed: " + e.getMessage(), e);

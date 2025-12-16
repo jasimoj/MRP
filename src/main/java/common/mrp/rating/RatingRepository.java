@@ -106,7 +106,7 @@ public class RatingRepository implements Repository<Rating, Integer> {
                 }
                 throw new RuntimeException("Unexpected: INSERT returned no row");
             } catch (SQLException e) {
-                if ("23505".equals(e.getSQLState())) {
+                if (SQL_ALREADY_EXISTS_CODE.equals(e.getSQLState())) {
                     throw new RuntimeException("Rating already exists");
                 }
                 throw new RuntimeException("insert rating failed: " + e.getMessage(), e);

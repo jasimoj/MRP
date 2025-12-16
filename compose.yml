@@ -2,15 +2,16 @@ services:
   postgresdb:
     image: postgres:18.0
     container_name: postgres_mrp
-    restart: unless-stopped #startet container bei crash neu
+    restart: unless-stopped
     environment:
-      POSTGRES_PASSWORD: admin123
-      POSTGRES_USER: admin
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test123
       POSTGRES_DB: mrpdb
     ports:
-      - 5432:5432
+      - "5433:5432"
     volumes:
-      - swen1v:/var/lib/postgresql
+      - swen1v2:/var/lib/postgresql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
-  swen1v:
+  swen1v2:
