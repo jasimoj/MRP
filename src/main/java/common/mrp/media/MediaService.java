@@ -60,12 +60,12 @@ public class MediaService {
         return mediaRepository.save(newMedia);
     }
 
-    public Media deleteMedia(int mediaId,  int currentUserId) {
+    public void deleteMedia(int mediaId, int currentUserId) {
         Media m = mediaRepository.find(mediaId).orElseThrow(EntityNotFoundException::new);
         if(m.getCreatedByUserId() != currentUserId){
             throw new ForbiddenException();
         }
-        return mediaRepository.delete(mediaId);
+        mediaRepository.delete(mediaId);
     }
 
     public double calculateAvg() {

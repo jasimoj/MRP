@@ -127,8 +127,8 @@ public class MediaController extends Controller {
         int currentUserId = requireAuthentication(request);
 
         Rating rating = toObject(request.getBody(), Rating.class);
-        ratingService.rateMedia(mediaId, rating, currentUserId);
-        return text(Status.CREATED, "Rating updated");
+        ratingService.rateMedia(currentUserId, mediaId, rating.getStars(), rating.getComment());
+        return text(Status.CREATED, "Rating created");
     }
 
     private Response postMediaFavorite(Request request, int mediaId) {

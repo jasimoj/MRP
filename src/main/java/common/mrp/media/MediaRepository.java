@@ -191,16 +191,16 @@ public class MediaRepository implements Repository<Media, Integer> {
     }
 
     @Override
-    public Media delete(Integer id) {
-        Optional<Media> existing = find(id);
-        if (existing.isEmpty()) return null;
+    public void delete(Integer id) {
+        if(find(id).isEmpty()){
+            throw new EntityNotFoundException("No entity found with id: " + id);
+        }
 
         try (Connection conn = connectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(DELETE_MEDIA)) {
 
             ps.setInt(1, id);
             ps.executeUpdate();
-            return existing.get();
             // Eintrag in media_genre wird durch cascade automatisch gelöscht
 
         } catch (SQLException e) {

@@ -52,7 +52,7 @@ public class MediaRatingApplication implements Application {
         UserService   userService   = new UserService(userRepo, mediaRepo);
         AuthService   authService   = new AuthService(userRepo);
         MediaService  mediaService  = new MediaService(mediaRepo);
-        RatingService ratingService = new RatingService(ratingRepo, mediaRepo); //Macht das sinn so?
+        RatingService ratingService = new RatingService(ratingRepo, mediaRepo, userRepo); //Macht das sinn so?
         LeaderboardService leaderboardService = new LeaderboardService(); // Repo nach DB entscheidung
         FavoriteService favoriteService = new FavoriteService(mediaRepo, userRepo, favoriteRepo); // Repo nach DB entscheidung
 

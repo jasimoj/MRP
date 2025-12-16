@@ -95,7 +95,7 @@ public class RatingController extends Controller {
         int currentUserId = requireAuthentication(request);
 
         ratingService.likeRating(ratingId, currentUserId);
-        return text(Status.NO_CONTENT, "Rating liked");
+        return text(Status.OK, "Rating liked");
     }
 
     private Response postRatingConfirm(Request request, int ratingId) {
@@ -110,7 +110,7 @@ public class RatingController extends Controller {
         int currentUserId = requireAuthentication(request);
 
         ratingService.deleteRating(ratingId, currentUserId);
-        return text(Status.OK, "Comment confirmed");
+        return text(Status.OK, "Rating deleted");
 
     }
 

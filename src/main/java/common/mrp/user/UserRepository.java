@@ -2,6 +2,8 @@ package common.mrp.user;
 
 import common.ConnectionPool;
 import common.database.Repository;
+import common.exception.EntityNotFoundException;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -151,16 +153,17 @@ public class UserRepository implements Repository<User, Integer> {
     }
 
     @Override
-    public User delete(Integer id) {
+    public void delete(Integer id) {
         Optional<User> existing = find(id);
-        if (existing.isEmpty()) return null;
+        if (find(id).isEmpty()) {
+            throw  new EntityNotFoundException("No entity found with id: " + id);
+        }
 
         try (Connection conn = connectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(DELETE_USER)) {
 
             ps.setInt(1, id);
             ps.executeUpdate();
-            return existing.get();
 
         } catch (SQLException e) {
             throw new RuntimeException("delete failed for id=" + id, e);

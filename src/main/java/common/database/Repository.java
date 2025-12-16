@@ -9,7 +9,7 @@ public interface Repository<T,ID> {
     Optional<T> find(ID id);
     List<T> findAll();
     T save(T item);
-    T delete(ID id);
+    void delete(ID id);
 
     String SQL_ALREADY_EXISTS_CODE = "23505";
 }

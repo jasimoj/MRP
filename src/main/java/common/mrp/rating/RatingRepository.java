@@ -5,10 +5,7 @@ import common.database.Repository;
 import common.exception.EntityNotFoundException;
 import common.mrp.media.Media;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,41 +15,45 @@ public class RatingRepository implements Repository<Rating, Integer> {
     private final ConnectionPool connectionPool;
 
     private static final String SELECT_BY_ID
-            = "SELECT * FROM rating WHERE id = ?";
+            = "SELECT r.id, r.user_id, r.media_id, r.comment, r.stars, r.confirmed, r.created_at, (SELECT COUNT(*) FROM rating_likes rl WHERE rl.rating_id = r.id) AS likes_count FROM ratings r WHERE r.id = ?";
+
+    private static final String SELECT_BY_MEDIA_ID =
+            "SELECT r.id, r.user_id, r.media_id, r.comment, r.stars, r.confirmed, r.created_at, (SELECT COUNT(*) FROM rating_likes rl WHERE rl.rating_id = r.id) AS likes_count FROM ratings r WHERE r.media_id = ? ORDER BY r.created_at DESC";
 
     private static final String SELECT_ALL =
-            "SELECT * FROM rating ORDER BY id";
-
-    private static final String SELECT_ALL_RATINGS_FROM_MEDIA =
-            "SELECT * FROM rating WHERE media_id = ?";
-
-    private static final String SELECT_ALL_RATINGS_FROM_USER =
-            "SELECT * FROM rating WHERE user_id = ?";
+            "SELECT * FROM ratings ORDER BY id";
 
     private static final String INSERT_RATING =
-            "INSERT INTO rating (media_id, user_id, stars, comment, confirmed) VALUES (?, ?, ?, ?, ?) RETURNING *";
+            "INSERT INTO ratings (user_id, media_id, comment, stars, confirmed, created_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, user_id, media_id, comment, stars, confirmed, created_at";
+
 
     private static final String UPDATE_RATING =
-            "UPDATE rating SET stars = ?, comment = ?, confirmed = ? WHERE id = ?";
+            "UPDATE ratings SET comment = ?, stars = ?, confirmed = ? WHERE id = ? RETURNING id, user_id, media_id, comment, stars, confirmed, created_at";
 
     private static final String DELETE_RATING =
-            "DELETE FROM rating WHERE id = ?";
+            "DELETE FROM ratings WHERE id = ?";
+
+    private static final String INSERT_LIKE =
+            "INSERT INTO rating_likes (rating_id, user_id) VALUES (?, ?)";
 
 
     public RatingRepository(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
     }
 
-    private static Rating map(ResultSet rs) throws SQLException {
-        Rating rating = new Rating();
-        rating.setId(rs.getInt("id"));
-        rating.setMediaId(rs.getInt("media_id"));
-        rating.setUserId(rs.getInt("user_id"));
-        rating.setStars(rs.getInt("stars"));
-        rating.setComment(rs.getString("comment"));
-        rating.setConfirmed(rs.getBoolean("confirmed"));
-
-        return rating;
+    private static Rating map(ResultSet rs, boolean withLike) throws SQLException {
+        Rating r = new Rating();
+        r.setId(rs.getInt("id"));
+        r.setUserId(rs.getInt("user_id"));
+        r.setMediaId(rs.getInt("media_id"));
+        r.setComment(rs.getString("comment"));
+        r.setStars(rs.getInt("stars"));
+        r.setConfirmed(rs.getBoolean("confirmed"));
+        r.setCreatedAt(rs.getLong("created_at"));
+        if(withLike) {
+            r.setLikesCount(rs.getInt("likes_count"));
+        }
+        return r;
     }
 
     @Override
@@ -64,12 +65,30 @@ public class RatingRepository implements Repository<Rating, Integer> {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(map(rs));
+                    return Optional.of(map(rs, true));
                 }
                 return Optional.empty();
             }
         } catch (SQLException e) {
-            throw new RuntimeException("find failed", e);
+            throw new RuntimeException("find rating failed" + e.getMessage(), e);
+        }
+    }
+
+    public List<Rating> findByMediaId(int id) {
+        try (Connection conn = connectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(SELECT_BY_MEDIA_ID)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                List<Rating> ratings = new ArrayList<>();
+                while(!rs.next()) {
+                    ratings.add(map(rs, true));
+                }
+                return ratings;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("find rating by mediaId failed" + e.getMessage(), e);
         }
     }
 
@@ -81,12 +100,13 @@ public class RatingRepository implements Repository<Rating, Integer> {
 
             List<Rating> list = new ArrayList<>();
             while (rs.next()) {
-                list.add(map(rs));
+                list.add(map(rs, true));
             }
             return list;
         } catch (SQLException e) {
             throw new RuntimeException("findAll failed", e);
-        }    }
+        }
+    }
 
     @Override
     public Rating save(Rating rating) {
@@ -94,15 +114,18 @@ public class RatingRepository implements Repository<Rating, Integer> {
         if (rating.getId() == 0) {
             try (Connection conn = connectionPool.getConnection();
                  PreparedStatement ps = conn.prepareStatement(INSERT_RATING)) {
+                ps.setInt(1, rating.getUserId());
+                ps.setInt(2, rating.getMediaId());
 
-                ps.setInt(1, rating.getMediaId());
-                ps.setInt(2, rating.getUserId());
-                ps.setInt(3, rating.getStars());
-                ps.setString(4, rating.getComment());
+                if (rating.getComment() == null) ps.setNull(3, Types.VARCHAR);
+                else ps.setString(3, rating.getComment());
+
+                ps.setInt(4, rating.getStars());
                 ps.setBoolean(5, rating.isConfirmed());
+                ps.setLong(6, rating.getCreatedAt());
 
                 try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) return map(rs);
+                    if (rs.next()) return map(rs, false);
                 }
                 throw new RuntimeException("Unexpected: INSERT returned no row");
             } catch (SQLException e) {
@@ -113,38 +136,51 @@ public class RatingRepository implements Repository<Rating, Integer> {
             }
         }
 
-        // UPDATE (bestehendes Rating)
+        // UPDATE
         try (Connection conn = connectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(UPDATE_RATING)) {
 
-            ps.setInt(1, rating.getUserId());
-            ps.setInt(2, rating.getStars());
-            ps.setString(3, rating.getComment());
-            ps.setBoolean(4, rating.isConfirmed());
+            if (rating.getComment() == null) ps.setNull(1, Types.VARCHAR);
+            else ps.setString(1, rating.getComment());
 
-            try (ResultSet rs = ps.executeQuery()) {        // wegen RETURNING *
-                if (rs.next()) return map(rs);
+            ps.setInt(2, rating.getStars());
+            ps.setBoolean(3, rating.isConfirmed());
+            ps.setInt(4, rating.getId());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return map(rs, false);
             }
             throw new RuntimeException("update returned no row (rating not found?)");
         } catch (SQLException e) {
-            throw new RuntimeException("update rating failed", e);
+            throw new RuntimeException("update rating failed" + e.getMessage(), e);
         }
     }
 
     @Override
-    public Rating delete(Integer id) {
-        Optional<Rating> existing = find(id);
-        if (existing.isEmpty()) return null;
-
+    public void delete(Integer id) {
         try (Connection conn = connectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(DELETE_RATING)) {
 
             ps.setInt(1, id);
             ps.executeUpdate();
-            return existing.get();
 
         } catch (SQLException e) {
-            throw new RuntimeException("delete failed for id=" + id, e);
+            throw new RuntimeException("delete rating failed" + e.getMessage(), e);
         }
     }
+
+    public void like(int ratingId, int userId) {
+        try (Connection conn = connectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(INSERT_LIKE)) {
+
+            ps.setInt(1, ratingId);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            if (SQL_ALREADY_EXISTS_CODE.equals(e.getSQLState())) return;
+            throw new RuntimeException("like failed" + e.getMessage(), e);
+        }
+    }
+
 }
