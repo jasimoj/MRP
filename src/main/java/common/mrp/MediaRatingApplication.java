@@ -5,6 +5,7 @@ import common.ConnectionPool;
 import common.exception.*;
 import common.mrp.auth.AuthService;
 import common.mrp.auth.Authenticator;
+import common.mrp.favorite.FavoriteRepository;
 import common.mrp.favorite.FavoriteService;
 import common.mrp.leaderboard.LeaderboardController;
 import common.mrp.leaderboard.LeaderboardService;
@@ -45,14 +46,15 @@ public class MediaRatingApplication implements Application {
         UserRepository  userRepo  = new UserRepository(connectionPool);
         MediaRepository mediaRepo = new MediaRepository(connectionPool);
         RatingRepository ratingRepo = new RatingRepository(connectionPool);
+        FavoriteRepository favoriteRepo = new FavoriteRepository(connectionPool);
 
         // ---- Services (einmalig, mit shared Repos) ----
-        UserService   userService   = new UserService(userRepo);
+        UserService   userService   = new UserService(userRepo, mediaRepo);
         AuthService   authService   = new AuthService(userRepo);
         MediaService  mediaService  = new MediaService(mediaRepo);
         RatingService ratingService = new RatingService(ratingRepo, mediaRepo); //Macht das sinn so?
         LeaderboardService leaderboardService = new LeaderboardService(); // Repo nach DB entscheidung
-        FavoriteService favoriteService = new FavoriteService(mediaRepo, userRepo); // Repo nach DB entscheidung
+        FavoriteService favoriteService = new FavoriteService(mediaRepo, userRepo, favoriteRepo); // Repo nach DB entscheidung
 
         this.authenticator = authService::verifyFromAuthorizationHeader;
 

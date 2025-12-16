@@ -41,6 +41,8 @@ public class MediaRepository implements Repository<Media, Integer> {
 
     private static final String SELECT_GENRES_FOR_MEDIA =
             "SELECT g.name FROM genres g JOIN media_genres mg ON mg.genre_id = g.id WHERE mg.media_id = ? ORDER BY g.name";
+    private static final String SELECT_FAVORITES_BY_USERID =
+            "SELECT m.title FROM favorites f JOIN media m ON m.id = f.media_id WHERE f.user_id = ? ORDER BY m.id DESC";
 
 
     public MediaRepository(ConnectionPool connectionPool) {
@@ -206,6 +208,23 @@ public class MediaRepository implements Repository<Media, Integer> {
         }
     }
 
+    public List<String> findFavoritesByUserId(int userId){
+        try (Connection conn = connectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(SELECT_FAVORITES_BY_USERID)) {
+
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<String> titles = new ArrayList<>();
+                while (rs.next()) {
+                    titles.add(rs.getString("title"));
+                }
+                return titles;
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("findFavoritesByUserId failed", e);
+        }
+    }
 
     private void saveGenre(Connection conn, int mediaId, List<String> genres) throws SQLException {
         // Alte Verbindungen löschen

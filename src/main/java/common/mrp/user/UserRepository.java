@@ -2,17 +2,14 @@ package common.mrp.user;
 
 import common.ConnectionPool;
 import common.database.Repository;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+
 
 public class UserRepository implements Repository<User, Integer> {
     private final ConnectionPool connectionPool;
@@ -86,7 +83,6 @@ public class UserRepository implements Repository<User, Integer> {
     @Override
     public User save(User user) {
         if (user.getId() == 0) {
-            // **INSERT (neuer User)**
             try (Connection conn = connectionPool.getConnection();
                  PreparedStatement ps = conn.prepareStatement(INSERT_USER)) {
 
@@ -108,14 +104,7 @@ public class UserRepository implements Repository<User, Integer> {
 
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        // Wir MAPPEN ALLE FELDER AUS DEM DB-RECORD
-                        User result = new User();
-                        result.setId(rs.getInt("id"));
-                        result.setUsername(rs.getString("username"));
-                        result.setEmail(rs.getString("email"));
-                        result.setPassword(rs.getString("password"));
-                        result.setFavoriteGenre(rs.getString("favorite_genre"));
-                        return result;
+                        return map(rs);
                     }
                 }
 
@@ -134,9 +123,19 @@ public class UserRepository implements Repository<User, Integer> {
              PreparedStatement ps = conn.prepareStatement(UPDATE_USER)) {
 
             ps.setString(1, user.getUsername());
-            ps.setString(2, user.getEmail());
+            if (user.getEmail() == null) {
+                ps.setNull(2, java.sql.Types.VARCHAR);
+            } else {
+                ps.setString(2, user.getEmail());
+            }
+
             ps.setString(3, user.getPassword());
-            ps.setString(4, user.getFavoriteGenre());
+
+            if (user.getFavoriteGenre() == null) {
+                ps.setNull(4, java.sql.Types.VARCHAR);
+            } else {
+                ps.setString(4, user.getFavoriteGenre());
+            }
             ps.setInt(5, user.getId());
 
             try (ResultSet rs = ps.executeQuery()) {

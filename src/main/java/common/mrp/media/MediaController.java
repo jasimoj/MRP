@@ -151,11 +151,10 @@ public class MediaController extends Controller {
 
     //DELETE
     private Response deleteMediaAsFavorite(Request request, int mediaId) {
-        //wird implementiert, sobald die DB Struktur fertig ist und ich weiß in welcher Tabelle Favorites sind
         int currentUserId = requireAuthentication(request);
 
         favoriteService.unmarkAsFavorite(mediaId, currentUserId);
-        return text(Status.NO_CONTENT, "Unmarked");
+        return text(Status.OK, "Unmarked as favorite");
     }
 
     private Response deleteMedia(Request request, int mediaId) {

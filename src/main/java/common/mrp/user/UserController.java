@@ -1,9 +1,6 @@
 package common.mrp.user;
 
 import common.Controller;
-import common.exception.CredentialMissmatchException;
-import common.exception.EntityNotFoundException;
-import common.exception.ForbiddenException;
 import common.mrp.auth.AuthService;
 import common.mrp.auth.Token;
 import common.mrp.auth.UserCredentials;
@@ -126,10 +123,9 @@ public class UserController extends Controller {
     }
 
     private Response getUserFavorites(Request request, int userId) {
-        // Was soll da zurück gegeben werden? Macht das jetzt schon Sinn etwas zu implementieren ohne Datenbank??
         checkAuthorizationByUserId(request, userId);
-        User user = userService.getUser(userId);
-        return json(user, Status.OK);
+        List<String> medias =  userService.getUserFavorites(userId);
+        return json(medias, Status.OK);
     }
 
     private Response getUserRecommendations(Request request, int userId) {
@@ -154,7 +150,6 @@ public class UserController extends Controller {
         String body = readBodyAsString(request);
         UserCredentials credentials = toObject(body, UserCredentials.class);
         User u = authService.registerUser(credentials);
-        //Soll der User zurück gegeben werden?
         return json(u, Status.CREATED);
     }
 
