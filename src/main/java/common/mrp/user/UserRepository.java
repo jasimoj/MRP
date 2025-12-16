@@ -18,19 +18,19 @@ public class UserRepository implements Repository<User, Integer> {
     private final ConnectionPool connectionPool;
 
     private static final String SELECT_BY_ID
-            = "SELECT id, username, email, password FROM users WHERE id = ?";
+            = "SELECT id, username, email, password, favorite_genre FROM users WHERE id = ?";
 
     private static final String SELECT_ALL =
-            "SELECT id, username, email, password FROM users ORDER BY id";
+            "SELECT id, username, email, password, favorite_genre  FROM users ORDER BY id";
 
     private static final String SELECT_BY_USERNAME =
-            "SELECT id, username, email, password FROM users WHERE username = ?";
+            "SELECT id, username, email, password, favorite_genre  FROM users WHERE username = ?";
 
     private static final String INSERT_USER =
-            "INSERT INTO users (username, email, password) VALUES (?, ?, ?) RETURNING id, username, email, password";
+            "INSERT INTO users (username, email, password, favorite_genre) VALUES (?, ?, ?, ?) RETURNING id, username, email, password, favorite_genre";
 
     private static final String UPDATE_USER =
-            "UPDATE users SET username = ?, email = ?, password = ? WHERE id = ?";
+            "UPDATE users SET username = ?, email = ?, password = ?, favorite_genre = ? WHERE id = ? RETURNING id, username, email, password, favorite_genre";
 
     private static final String DELETE_USER =
             "DELETE FROM users WHERE id = ?";
@@ -45,6 +45,7 @@ public class UserRepository implements Repository<User, Integer> {
         u.setUsername(rs.getString("username"));
         u.setEmail(rs.getString("email"));
         u.setPassword(rs.getString("password"));
+        u.setFavoriteGenre(rs.getString("favorite_genre"));
         return u;
     }
 
@@ -99,6 +100,12 @@ public class UserRepository implements Repository<User, Integer> {
 
                 ps.setString(3, user.getPassword());
 
+                if (user.getFavoriteGenre() == null) {
+                    ps.setNull(4, java.sql.Types.VARCHAR);
+                } else {
+                    ps.setString(4, user.getFavoriteGenre());
+                }
+
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         // Wir MAPPEN ALLE FELDER AUS DEM DB-RECORD
@@ -107,6 +114,7 @@ public class UserRepository implements Repository<User, Integer> {
                         result.setUsername(rs.getString("username"));
                         result.setEmail(rs.getString("email"));
                         result.setPassword(rs.getString("password"));
+                        result.setFavoriteGenre(rs.getString("favorite_genre"));
                         return result;
                     }
                 }
@@ -114,7 +122,6 @@ public class UserRepository implements Repository<User, Integer> {
                 throw new RuntimeException("Unexpected: INSERT returned no row");
 
             } catch (SQLException e) {
-                // UNIQUE Constraint Fehlermeldung schöner machen:
                 if (SQL_ALREADY_EXISTS_CODE.equals(e.getSQLState())) {
                     throw new RuntimeException("Username already exists");
                 }
@@ -122,24 +129,19 @@ public class UserRepository implements Repository<User, Integer> {
             }
         }
 
-        // **UPDATE (falls später gebraucht)**
+        // UPDATE
         try (Connection conn = connectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(UPDATE_USER)) {
 
             ps.setString(1, user.getUsername());
-            if (user.getEmail() == null) ps.setNull(2, java.sql.Types.VARCHAR);
-            else ps.setString(2, user.getEmail());
+            ps.setString(2, user.getEmail());
             ps.setString(3, user.getPassword());
-            ps.setInt(4, user.getId());
+            ps.setString(4, user.getFavoriteGenre());
+            ps.setInt(5, user.getId());
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    User result = new User();
-                    result.setId(rs.getInt("id"));
-                    result.setUsername(rs.getString("username"));
-                    result.setEmail(rs.getString("email"));
-                    result.setPassword(rs.getString("password"));
-                    return result;
+                    return map(rs);
                 }
             }
             throw new RuntimeException("update returned no row (user not found?)");
