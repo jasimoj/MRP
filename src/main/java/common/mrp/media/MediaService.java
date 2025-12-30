@@ -21,6 +21,9 @@ public class MediaService {
     public List<Media> getAllMedia() {
         return mediaRepository.findAll();
     }
+    public List<Media> findByFilter(MediaFilter filter) {
+        return mediaRepository.findByFilter(filter);
+    }
 
     public Media updateMedia(int mediaId, MediaInput media, int currentUserId) {
         Media updatedMedia = mediaRepository.find(mediaId)

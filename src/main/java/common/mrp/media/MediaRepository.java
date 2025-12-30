@@ -415,6 +415,31 @@ public class MediaRepository {
         }
     }
 
+    public List<Media> findByFilter(MediaFilter filter) {
+        SqlWithParams sqlWithParams = MediaFilterQueryBuilder.build(filter);
+        try (Connection conn = connectionPool.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sqlWithParams.sql))   {
+
+            for (int i = 0; i < sqlWithParams.params.size(); i++) {
+                ps.setObject(i + 1, sqlWithParams.params.get(i));
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                List<Media> mediaList = new ArrayList<>();
+
+                while (rs.next()) {
+                    Media m = map(rs);
+                    m.setGenres(loadGenres(conn, m.getId()));
+                    mediaList.add(m);
+                }
+                return mediaList;
+
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("findByFilter failed", e);
+        }
+    }
 
 }
 

@@ -18,6 +18,8 @@ public class MediaController extends Controller {
     private final RatingService ratingService;
     private final FavoriteService favoriteService;
     private final AuthService authService;
+    private final MediaFilterHelper filterHelper = new MediaFilterHelper();
+
 
     public MediaController(MediaService mediaService, RatingService ratingService, FavoriteService favoriteService, AuthService authService) {
         super("/media");
@@ -34,7 +36,7 @@ public class MediaController extends Controller {
         if (request.getMethod().equals(Method.GET.getValue())) {
             if (isBase(split)) {
                 //Platzhalter
-                return getMedia();
+                return getMedia(request);
             }
 
             if (isMediaWithId(split)) {
@@ -105,12 +107,20 @@ public class MediaController extends Controller {
         return json(media, Status.OK);
     }
 
-    private Response getMedia() {
-        //Sollen nur die Entries von einer media ausgegeben werden?
-        //Falls ja, ist das hier nur platzhalter
-        //genauere Funktion kommt, sobald DB da ist
-        List<Media> mediaList = mediaService.getAllMedia();
-        return json(mediaList, Status.OK);
+    private Response getMedia(Request request) {
+        MediaFilter mf = new MediaFilter();
+        mf.title = request.getQueryParam("title");
+        mf.genre = request.getQueryParam("genre");
+        mf.mediaType = request.getQueryParam("mediaType");
+        mf.sortBy = request.getQueryParam("sortBy");
+        mf.releaseYear = filterHelper.intOrNull(request.getQueryParam("releaseYear"));
+        mf.ageRestriction = filterHelper.intOrNull(request.getQueryParam("ageRestriction"));
+        mf.rating = filterHelper.doubleOrNull(request.getQueryParam("rating"));
+
+        if (filterHelper.isEmptyFilter(mf)) {
+            return json(mediaService.getAllMedia(), Status.OK);
+        }
+        return json(mediaService.findByFilter(mf), Status.OK);
     }
 
 
