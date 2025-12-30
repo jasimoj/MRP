@@ -1,5 +1,12 @@
 package server.http;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 public class Request {
 
     private String method;
@@ -8,6 +15,7 @@ public class Request {
     private Integer authUserId;
     private String authUsername;
 
+    private Map<String, List<String>> queryParams = new HashMap<>();
 
     public String getMethod() {
         return method;
@@ -48,5 +56,18 @@ public class Request {
 
     public void setAuthUsername(String authUsername) {
         this.authUsername = authUsername;
+    }
+
+    public void setQueryParams(Map<String, List<String>> queryParams) {
+        this.queryParams = queryParams;
+    }
+
+    public String getQueryParam(String key) {
+        List<String> values = queryParams.get(key);
+        return (values == null || values.isEmpty()) ? null : values.get(0);
+    }
+
+    public List<String> getQueryParams(String key) {
+        return queryParams.getOrDefault(key, List.of());
     }
 }

@@ -1,6 +1,6 @@
 package common.database;
 
-import common.mrp.user.User;
+import common.mrp.rating.Rating;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,6 +8,9 @@ import java.util.Optional;
 public interface Repository<T,ID> {
     Optional<T> find(ID id);
     List<T> findAll();
+
+    List<T> findAll(Integer userid);
+
     T save(T item);
     void delete(ID id);
 

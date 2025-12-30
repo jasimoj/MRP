@@ -4,8 +4,12 @@ import common.Controller;
 import common.mrp.auth.AuthService;
 import common.mrp.auth.Token;
 import common.mrp.auth.UserCredentials;
+import common.mrp.media.Media;
 import common.mrp.rating.Rating;
+import common.mrp.rating.RatingRepository;
 import common.mrp.rating.RatingService;
+import common.mrp.recommendation.Recommendation;
+import common.mrp.recommendation.RecommendationService;
 import common.routing.PathUtil;
 import server.http.Method;
 import server.http.Request;
@@ -19,12 +23,14 @@ public class UserController extends Controller {
     private final UserService userService;
     private final AuthService authService;
     private final RatingService ratingService;
+    private final RecommendationService recommendationService;
 
-    public UserController(UserService userService, AuthService authService, RatingService ratingService) {
+    public UserController(UserService userService, AuthService authService, RatingService ratingService, RecommendationService recommendationService) {
         super("/users");
         this.userService = userService;
         this.authService = authService;
         this.ratingService = ratingService;
+        this.recommendationService = recommendationService;
     }
 
     @Override
@@ -110,7 +116,7 @@ public class UserController extends Controller {
     // GET
     private Response getUserProfile(Request request, int userId) {
         checkAuthorizationByUserId(request, userId);
-        User user = userService.getUser(userId);
+        UserProfile user = userService.getProfile(userId);
         return json(user, Status.OK);
     }
 
@@ -118,7 +124,7 @@ public class UserController extends Controller {
     private Response getUserRatings(Request request, int userId) {
         checkAuthorizationByUserId(request, userId);
         userService.getUser(userId);
-        Rating rating = ratingService.getRating(userId);
+        List<Rating> rating = ratingService.getAllRatingsFromUser(userId);
         return json(rating, Status.OK);
     }
 
@@ -129,10 +135,10 @@ public class UserController extends Controller {
     }
 
     private Response getUserRecommendations(Request request, int userId) {
-        // Was soll da zurück gegeben werden? Macht das jetzt schon Sinn etwas zu implementieren ohne Datenbank??
         checkAuthorizationByUserId(request, userId);
-        User user = userService.getUser(userId);
-        return json(user, Status.OK);
+        String type = request.getQueryParam("type");
+        List<Recommendation> recommendations = recommendationService.getRecommendations(userId, type);
+        return json(recommendations, Status.OK);
     }
 
     //PUT

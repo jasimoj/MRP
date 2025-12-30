@@ -1,26 +1,28 @@
 package common.mrp.media;
 
+import com.sun.jdi.ClassNotPreparedException;
 import common.ConnectionPool;
 import common.database.Repository;
 import common.exception.EntityNotFoundException;
+import common.mrp.recommendation.Recommendation;
 import common.mrp.user.User;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
-public class MediaRepository implements Repository<Media, Integer> {
+import static common.database.Repository.SQL_ALREADY_EXISTS_CODE;
+
+public class MediaRepository {
     private final ConnectionPool connectionPool;
 
     private static final String SELECT_BY_ID
-            = "SELECT * FROM media WHERE id = ?";
-    private static final String SELECT_ALL
-            = "SELECT * FROM media ORDER BY id";
+            = "SELECT m.*,  COALESCE(AVG(r.stars), 0) AS avg_stars, COUNT(r.id) AS ratings_count FROM media m LEFT JOIN ratings r ON r.media_id = m.id WHERE m.id = ? GROUP BY m.id;";
+    private static final String SELECT_ALL =
+            "SELECT m.*, COALESCE(AVG(r.stars), 0) AS avg_stars, COUNT(r.id) AS ratings_count FROM media m LEFT JOIN ratings r ON r.media_id = m.id GROUP BY m.id";
+
     private static final String INSERT_MEDIA =
             "INSERT INTO media (title, media_type, release_year, age_restriction, description, created_by_user_id) VALUES (?, ?, ?, ?, ?, ?) RETURNING *";
 
@@ -41,9 +43,53 @@ public class MediaRepository implements Repository<Media, Integer> {
 
     private static final String SELECT_GENRES_FOR_MEDIA =
             "SELECT g.name FROM genres g JOIN media_genres mg ON mg.genre_id = g.id WHERE mg.media_id = ? ORDER BY g.name";
+
     private static final String SELECT_FAVORITES_BY_USERID =
             "SELECT m.title FROM favorites f JOIN media m ON m.id = f.media_id WHERE f.user_id = ? ORDER BY m.id DESC";
 
+    private static final String GET_TOP_GENRE_FROM_USER =
+            "SELECT g.id, g.name, COUNT(*) AS cnt FROM ratings r JOIN media_genres mg ON mg.media_id = r.media_id " +
+                    "JOIN genres g ON g.id = mg.genre_id WHERE r.user_id = ? AND r.stars >= 4 GROUP BY g.id, g.name ORDER BY cnt DESC LIMIT 1; ";
+
+    private static final String GET_MEDIA_BY_GENRE = "SELECT DISTINCT m.id FROM media m JOIN media_genres mg ON mg.media_id = m.id WHERE mg.genre_id = ? " +
+            "AND m.id NOT IN (SELECT media_id FROM ratings WHERE user_id = ?) LIMIT 5;";
+
+    private static final String GET_TOP_RATINGS_FROM_USER =
+            "SELECT r.media_id FROM ratings r WHERE r.user_id = ? AND r.stars >= 4 ORDER BY r.stars DESC, r.created_at DESC LIMIT 3;";
+
+    private static final String CONTENT_SELECT =
+            "SELECT m2.id, m2.title, COALESCE(AVG(r2.stars), 0) AS avg_score, COUNT(r2.id) AS ratings_count, COUNT(DISTINCT g2.id) AS shared_genres ";
+
+    private static final String CONTENT_FROM =
+            "FROM media m2 JOIN media_genres mg2 ON mg2.media_id = m2.id JOIN genres g2 ON g2.id = mg2.genre_id LEFT JOIN ratings r2 ON r2.media_id = m2.id ";
+
+    private static final String CONTENT_WHERE_BASE =
+            "WHERE m2.id NOT IN (SELECT media_id FROM ratings WHERE user_id = ?) ";
+
+    private static final String CONTENT_EXISTS_PREFIX =
+            "AND EXISTS (   SELECT 1   FROM media m1   JOIN media_genres mg1 ON mg1.media_id = m1.id   WHERE m1.id IN (%s)     AND m1.media_type = m2.media_type " +
+                    " AND m2.age_restriction <= m1.age_restriction AND mg1.genre_id = mg2.genre_id) ";
+
+    private static final String CONTENT_GROUP_ORDER =
+            "GROUP BY m2.id ORDER BY shared_genres DESC, avg_score DESC, ratings_count DESC LIMIT 5;";
+
+
+
+    private static String buildCandidates(int count) {
+        String ph = String.join(", ", Collections.nCopies(count, "?"));
+        return "SELECT m.id, m.title, COALESCE(AVG(r.stars), 0) AS avg_score, COUNT(r.id) AS ratings_count " +
+                "FROM media m LEFT JOIN ratings r ON r.media_id = m.id WHERE m.id IN (" + ph + ") GROUP BY m.id ORDER BY avg_score DESC, ratings_count DESC LIMIT 5;";
+    }
+
+    private static String buildContentCandidates(int count) {
+        String ph = String.join(", ", Collections.nCopies(count, "?"));
+
+        return CONTENT_SELECT +
+                CONTENT_FROM +
+                CONTENT_WHERE_BASE +
+                String.format(CONTENT_EXISTS_PREFIX, ph) +
+                CONTENT_GROUP_ORDER;
+    }
 
     public MediaRepository(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
@@ -58,11 +104,21 @@ public class MediaRepository implements Repository<Media, Integer> {
         media.setAgeRestriction(rs.getInt("age_restriction"));
         media.setDescription(rs.getString("description"));
         media.setCreatedByUserId(rs.getInt("created_by_user_id"));
+        media.setAvgStars(rs.getDouble("avg_stars"));
+        media.setRatingsCount(rs.getInt("ratings_count"));
 
         return media;
     }
 
-    @Override
+    private static Recommendation recommendationMap(ResultSet rs) throws SQLException {
+        Recommendation rec = new Recommendation();
+        rec.setId(rs.getInt("id"));
+        rec.setTitle(rs.getString("title"));
+        rec.setAvgScore(rs.getDouble("avg_score"));
+        rec.setRatingsCount(rs.getInt("ratings_count"));
+        return rec;
+    }
+
     public Optional<Media> find(Integer id) {
         try (Connection conn = connectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID)) {
@@ -82,7 +138,6 @@ public class MediaRepository implements Repository<Media, Integer> {
         }
     }
 
-    @Override
     public List<Media> findAll() {
         try (Connection conn = connectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_ALL);
@@ -100,7 +155,6 @@ public class MediaRepository implements Repository<Media, Integer> {
         }
     }
 
-    @Override
     public Media save(Media media) {
         // Insert NEW Media
         if (media.getId() == 0) {
@@ -114,22 +168,21 @@ public class MediaRepository implements Repository<Media, Integer> {
                     ps.setInt(4, media.getAgeRestriction());
                     ps.setString(5, media.getDescription());
                     ps.setInt(6, media.getCreatedByUserId());
-
+                    int mediaId;
                     try (ResultSet rs = ps.executeQuery()) {
                         if (!rs.next()) {
                             conn.rollback();
                             throw new RuntimeException("Unexpected: INSERT returned no row");
                         }
+                        mediaId = rs.getInt("id");
 
-                        int mediaId = rs.getInt("id");
-                        saveGenre(conn, mediaId, media.getGenres());
-
-                        Media savedMedia = map(rs);
-                        savedMedia.setGenres(loadGenres(conn, mediaId));
-
-                        conn.commit();
-                        return savedMedia;
                     }
+                    saveGenre(conn, mediaId, media.getGenres());
+                    conn.commit();
+
+                    return find(mediaId).orElseThrow(() ->
+                            new RuntimeException("Inserted media not found: id=" + mediaId)
+                    );
 
                 } catch (SQLException ex) {
                     conn.rollback();
@@ -161,22 +214,21 @@ public class MediaRepository implements Repository<Media, Integer> {
                 ps.setString(5, media.getDescription());
                 ps.setInt(6, media.getCreatedByUserId());
                 ps.setInt(7, media.getId());
+                int mediaId;
 
                 try (ResultSet rs = ps.executeQuery()) {
                     if (!rs.next()) {
                         conn.rollback();
                         throw new RuntimeException("update returned no row (media not found?)");
                     }
-
-                    int mediaId = rs.getInt("id");
-                    saveGenre(conn, mediaId, media.getGenres());
-
-                    Media saved = map(rs);
-                    saved.setGenres(loadGenres(conn, mediaId));
-
-                    conn.commit();
-                    return saved;
+                    mediaId = rs.getInt("id");
                 }
+                saveGenre(conn, mediaId, media.getGenres());
+                conn.commit();
+
+                return find(mediaId).orElseThrow(() ->
+                        new RuntimeException("Updated media not found: id=" + mediaId)
+                );
 
             } catch (SQLException ex) {
                 conn.rollback();
@@ -190,9 +242,8 @@ public class MediaRepository implements Repository<Media, Integer> {
         }
     }
 
-    @Override
     public void delete(Integer id) {
-        if(find(id).isEmpty()){
+        if (find(id).isEmpty()) {
             throw new EntityNotFoundException("No entity found with id: " + id);
         }
 
@@ -208,7 +259,7 @@ public class MediaRepository implements Repository<Media, Integer> {
         }
     }
 
-    public List<String> findFavoritesByUserId(int userId){
+    public List<String> findFavoritesByUserId(int userId) {
         try (Connection conn = connectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_FAVORITES_BY_USERID)) {
 
@@ -238,7 +289,7 @@ public class MediaRepository implements Repository<Media, Integer> {
         for (String genre : genres) {
             if (genre == null) continue;
             genre = genre.trim();
-            if(genre.isEmpty()) continue;
+            if (genre.isEmpty()) continue;
             //checken ob genre schon existiert und speichern
             try (PreparedStatement psInsert = conn.prepareStatement(INSERT_GENRE)) {
                 psInsert.setString(1, genre);
@@ -267,6 +318,103 @@ public class MediaRepository implements Repository<Media, Integer> {
             }
         }
     }
+
+    public List<Recommendation> getRecommendationByGenre(Integer userId) {
+        try (Connection conn = connectionPool.getConnection()) {
+            Integer topGenreId = null;
+            List<Integer> mediasByGenre = new ArrayList<>();
+            List<Recommendation> recommendationList = new ArrayList<>();
+
+            //Top Genre bestimmen
+            try (PreparedStatement tG = conn.prepareStatement(GET_TOP_GENRE_FROM_USER)) {
+                tG.setInt(1, userId);
+                try (ResultSet rs = tG.executeQuery()) {
+                    if (rs.next()) {
+                        topGenreId = rs.getInt("id");
+                    }
+                }
+            }
+
+            if (topGenreId == null) {
+                return List.of();
+            }
+
+            // Medias von diesem genre holen die der user noch nicht bewertet hat
+            try (PreparedStatement mG = conn.prepareStatement(GET_MEDIA_BY_GENRE)) {
+                mG.setInt(1, topGenreId);
+                mG.setInt(2, userId);
+
+                try (ResultSet rs = mG.executeQuery()) {
+                    while (rs.next()) {
+                        mediasByGenre.add(rs.getInt("id"));
+                    }
+                }
+            }
+
+            if (mediasByGenre.isEmpty()) {
+                return List.of();
+            }
+
+            String candidatesSql = buildCandidates(mediasByGenre.size());
+            try (PreparedStatement mG = conn.prepareStatement(candidatesSql)) {
+                for (int i = 0; i < mediasByGenre.size(); i++) {
+                    mG.setInt(i + 1, mediasByGenre.get(i));
+                }
+
+                try (ResultSet rs = mG.executeQuery()) {
+                    while (rs.next()) {
+                        recommendationList.add(recommendationMap(rs));
+                    }
+                }
+            }
+
+            return recommendationList;
+        } catch (SQLException e) {
+            throw new RuntimeException("getRecommendationByGenre failed", e);
+        }
+    }
+
+    public List<Recommendation> getRecommendationByContent(Integer userId) {
+        try (Connection conn = connectionPool.getConnection()) {
+            List<Integer> userTopRatingIds = new ArrayList<>();
+            //Top Ratings bestimmen
+            try (PreparedStatement tR = conn.prepareStatement(GET_TOP_RATINGS_FROM_USER)) {
+                tR.setInt(1, userId);
+                try (ResultSet rs = tR.executeQuery()) {
+                    while (rs.next()) {
+                        userTopRatingIds.add(rs.getInt("media_id"));
+                    }
+                }
+            }
+
+            if (userTopRatingIds.isEmpty()) {
+                return List.of();
+            }
+            String sql = buildContentCandidates(userTopRatingIds.size());
+            List<Recommendation> recommendations = new ArrayList<>();
+
+            // Medias holen die in genre, altersbeschränkung und mediatype übereinstimmen
+            try (PreparedStatement mG = conn.prepareStatement(sql)) {
+                int index = 1;
+                mG.setInt(index++, userId);
+
+                for (Integer topRatingId : userTopRatingIds) {
+                    mG.setInt(index++, topRatingId);
+                }
+
+                try (ResultSet rs = mG.executeQuery()) {
+                    while (rs.next()) {
+                        recommendations.add(recommendationMap(rs));
+                    }
+                }
+            }
+
+            return recommendations;
+        } catch (SQLException e) {
+            throw new RuntimeException("getRecommendationByContent failed", e);
+        }
+    }
+
 
 }
 

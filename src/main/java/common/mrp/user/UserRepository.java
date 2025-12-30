@@ -3,6 +3,7 @@ package common.mrp.user;
 import common.ConnectionPool;
 import common.database.Repository;
 import common.exception.EntityNotFoundException;
+import common.mrp.leaderboard.LeaderboardEntry;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,8 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static common.database.Repository.SQL_ALREADY_EXISTS_CODE;
 
-public class UserRepository implements Repository<User, Integer> {
+
+public class UserRepository {
     private final ConnectionPool connectionPool;
 
     private static final String SELECT_BY_ID
@@ -34,6 +37,12 @@ public class UserRepository implements Repository<User, Integer> {
     private static final String DELETE_USER =
             "DELETE FROM users WHERE id = ?";
 
+    private static final String SELECT_PROFILE =
+            "SELECT u.id, u.username, u.email, u.favorite_genre, COALESCE(COUNT(r.id), 0) AS total_ratings, COALESCE(AVG(r.stars), 0) AS avg_stars FROM users u LEFT JOIN ratings r ON r.user_id = u.id WHERE u.id = ? GROUP BY u.id, u.username, u.email, u.favorite_genre";
+
+    private static final String GET_LEADERBOARD =
+            "SELECT u.id, u.username, COUNT(r.id) as ratings_count FROM users u LEFT JOIN ratings r ON r.user_id = u.id GROUP BY u.id, u.username ORDER BY ratings_count DESC, u.username ASC LIMIT 10 ";
+
     public UserRepository(ConnectionPool connectionPool) {
         this.connectionPool = connectionPool;
     }
@@ -48,7 +57,25 @@ public class UserRepository implements Repository<User, Integer> {
         return u;
     }
 
-    @Override
+    private static UserProfile userProfileMap(ResultSet rs) throws SQLException {
+        UserProfile up = new UserProfile();
+        up.setId(rs.getInt("id"));
+        up.setUsername(rs.getString("username"));
+        up.setEmail(rs.getString("email"));
+        up.setFavoriteGenre(rs.getString("favorite_genre"));
+        up.setTotalRatings(rs.getInt("total_ratings"));
+        up.setAvgStars(rs.getDouble("avg_stars"));
+        return up;
+    }
+
+    private static LeaderboardEntry leaderboardMap(ResultSet rs) throws SQLException {
+        LeaderboardEntry le = new LeaderboardEntry();
+        le.setUserid(rs.getInt("id"));
+        le.setUsername(rs.getString("username"));
+        le.setRatingsCount(rs.getInt("ratings_count"));
+        return le;
+    }
+
     public Optional<User> find(Integer id) {
         try (Connection conn = connectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID)) {
@@ -66,7 +93,6 @@ public class UserRepository implements Repository<User, Integer> {
         }
     }
 
-    @Override
     public List<User> findAll() {
         try (Connection conn = connectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_ALL);
@@ -82,7 +108,6 @@ public class UserRepository implements Repository<User, Integer> {
         }
     }
 
-    @Override
     public User save(User user) {
         if (user.getId() == 0) {
             try (Connection conn = connectionPool.getConnection();
@@ -152,9 +177,7 @@ public class UserRepository implements Repository<User, Integer> {
         }
     }
 
-    @Override
     public void delete(Integer id) {
-        Optional<User> existing = find(id);
         if (find(id).isEmpty()) {
             throw  new EntityNotFoundException("No entity found with id: " + id);
         }
@@ -184,6 +207,39 @@ public class UserRepository implements Repository<User, Integer> {
             }
         } catch (SQLException e) {
             throw new RuntimeException("findByUsername failed: " + username, e);
+        }
+    }
+
+    public List<LeaderboardEntry>  getLeaderboardByRatings(){
+        try(Connection conn = connectionPool.getConnection();
+        PreparedStatement ps = conn.prepareStatement(GET_LEADERBOARD)){
+            List<LeaderboardEntry> leaderboard = new ArrayList<>();
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()){
+                    leaderboard.add(leaderboardMap(rs));
+                }
+                return leaderboard;
+            }
+        }catch (SQLException e){
+            throw new RuntimeException("getLeaderboardByRatings failed" + e.getMessage(), e);
+        }
+    }
+
+
+    public Optional<UserProfile> getProfile(Integer id) {
+        try (Connection conn = connectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(SELECT_PROFILE)) {
+
+            ps.setInt(1, id);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(userProfileMap(rs));
+                }
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("finding userprofile failed"+ e.getMessage(), e);
         }
     }
 }

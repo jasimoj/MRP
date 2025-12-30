@@ -68,10 +68,6 @@ public class MediaService {
         mediaRepository.delete(mediaId);
     }
 
-    public double calculateAvg() {
-        double avg = 0;
 
-        return avg;
-    }
 
 }

@@ -11,7 +11,7 @@ public class Media {
     private int ageRestriction;
     private String description;
     private int createdByUserId; //für später
-    private double avgScore; //für später
+    private double avgStars; //für später
     private int ratingsCount; //für später
 
     public Media() {
@@ -82,12 +82,12 @@ public class Media {
         this.createdByUserId = createdByUserId;
     }
 
-    public double getAvgScore() {
-        return avgScore;
+    public double getAvgStars() {
+        return avgStars;
     }
 
-    public void setAvgScore(double avgScore) {
-        this.avgScore = avgScore;
+    public void setAvgStars(double avgStars) {
+        this.avgStars = avgStars;
     }
 
     public int getRatingsCount() {

@@ -29,9 +29,8 @@ public class RatingService {
                 .orElseThrow(EntityNotFoundException::new);
     }
 
-    //Für leaderboard vlt in zukunft?
-    public List<Rating> getAllRatings() {
-        return ratingRepository.findAll();
+    public List<Rating> getAllRatingsFromUser(int userId) {
+        return ratingRepository.findAll(userId);
     }
 
     public Rating updateRating(int ratingId, Rating rating, int currentUserId) {

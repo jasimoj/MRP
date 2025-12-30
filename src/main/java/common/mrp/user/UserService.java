@@ -1,7 +1,6 @@
 package common.mrp.user;
 
 import common.exception.EntityNotFoundException;
-import common.mrp.media.Media;
 import common.mrp.media.MediaRepository;
 
 import java.util.List;
@@ -17,6 +16,11 @@ public class UserService {
 
     public User getUser(int id){
         return userRepository.find(id)
+                .orElseThrow(EntityNotFoundException::new);
+    }
+
+    public UserProfile getProfile(int id){
+        return userRepository.getProfile(id)
                 .orElseThrow(EntityNotFoundException::new);
     }
 

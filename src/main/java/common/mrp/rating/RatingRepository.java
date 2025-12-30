@@ -2,16 +2,15 @@ package common.mrp.rating;
 
 import common.ConnectionPool;
 import common.database.Repository;
-import common.exception.EntityNotFoundException;
-import common.mrp.media.Media;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
-public class RatingRepository implements Repository<Rating, Integer> {
+import static common.database.Repository.SQL_ALREADY_EXISTS_CODE;
+
+public class RatingRepository {
     private final ConnectionPool connectionPool;
 
     private static final String SELECT_BY_ID
@@ -20,8 +19,8 @@ public class RatingRepository implements Repository<Rating, Integer> {
     private static final String SELECT_BY_MEDIA_ID =
             "SELECT r.id, r.user_id, r.media_id, r.comment, r.stars, r.confirmed, r.created_at, (SELECT COUNT(*) FROM rating_likes rl WHERE rl.rating_id = r.id) AS likes_count FROM ratings r WHERE r.media_id = ? ORDER BY r.created_at DESC";
 
-    private static final String SELECT_ALL =
-            "SELECT * FROM ratings ORDER BY id";
+    private static final String FIND_ALL_BY_USER_ID
+            = "SELECT r.id, r.user_id, r.media_id, r.comment, r.stars, r.confirmed, r.created_at, (SELECT COUNT(*) FROM rating_likes rl WHERE rl.rating_id = r.id) AS likes_count FROM ratings r WHERE r.user_id = ?";
 
     private static final String INSERT_RATING =
             "INSERT INTO ratings (user_id, media_id, comment, stars, confirmed, created_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, user_id, media_id, comment, stars, confirmed, created_at";
@@ -56,7 +55,6 @@ public class RatingRepository implements Repository<Rating, Integer> {
         return r;
     }
 
-    @Override
     public Optional<Rating> find(Integer id) {
         try (Connection conn = connectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID)) {
@@ -82,7 +80,7 @@ public class RatingRepository implements Repository<Rating, Integer> {
 
             try (ResultSet rs = ps.executeQuery()) {
                 List<Rating> ratings = new ArrayList<>();
-                while(!rs.next()) {
+                while (rs.next()) {
                     ratings.add(map(rs, true));
                 }
                 return ratings;
@@ -92,23 +90,24 @@ public class RatingRepository implements Repository<Rating, Integer> {
         }
     }
 
-    @Override
-    public List<Rating> findAll() {
+    public List<Rating> findAll(Integer userId) {
         try (Connection conn = connectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SELECT_ALL);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement ps = conn.prepareStatement(FIND_ALL_BY_USER_ID)) {
 
-            List<Rating> list = new ArrayList<>();
-            while (rs.next()) {
-                list.add(map(rs, true));
+            ps.setInt(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                List<Rating> list = new ArrayList<>();
+                while (rs.next()) {
+                    list.add(map(rs, true));
+                }
+                return list;
             }
-            return list;
         } catch (SQLException e) {
             throw new RuntimeException("findAll failed", e);
         }
     }
 
-    @Override
     public Rating save(Rating rating) {
         // Insert NEW Rating
         if (rating.getId() == 0) {
@@ -156,7 +155,6 @@ public class RatingRepository implements Repository<Rating, Integer> {
         }
     }
 
-    @Override
     public void delete(Integer id) {
         try (Connection conn = connectionPool.getConnection();
              PreparedStatement ps = conn.prepareStatement(DELETE_RATING)) {

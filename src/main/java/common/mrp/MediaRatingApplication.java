@@ -13,6 +13,7 @@ import common.mrp.media.MediaRepository;
 import common.mrp.media.MediaService;
 import common.mrp.rating.RatingRepository;
 import common.mrp.rating.RatingService;
+import common.mrp.recommendation.RecommendationService;
 import common.mrp.user.UserRepository;
 import common.mrp.user.UserService;
 import common.routing.Router;
@@ -52,14 +53,15 @@ public class MediaRatingApplication implements Application {
         UserService   userService   = new UserService(userRepo, mediaRepo);
         AuthService   authService   = new AuthService(userRepo);
         MediaService  mediaService  = new MediaService(mediaRepo);
-        RatingService ratingService = new RatingService(ratingRepo, mediaRepo, userRepo); //Macht das sinn so?
-        LeaderboardService leaderboardService = new LeaderboardService(); // Repo nach DB entscheidung
+        RatingService ratingService = new RatingService(ratingRepo, mediaRepo, userRepo);
+        RecommendationService recommendationService = new RecommendationService(mediaRepo);
+        LeaderboardService leaderboardService = new LeaderboardService(userRepo); // Repo nach DB entscheidung
         FavoriteService favoriteService = new FavoriteService(mediaRepo, userRepo, favoriteRepo); // Repo nach DB entscheidung
 
         this.authenticator = authService::verifyFromAuthorizationHeader;
 
         // ---- Controller (einmalig, mit Services) ----
-        UserController   userController   = new UserController(userService, authService, ratingService);
+        UserController   userController   = new UserController(userService, authService, ratingService, recommendationService);
         MediaController  mediaController  = new MediaController(mediaService, ratingService, favoriteService, authService);
         RatingController ratingController = new RatingController(ratingService, authService);
         LeaderboardController leaderboardController = new LeaderboardController(leaderboardService);

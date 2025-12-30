@@ -7,8 +7,11 @@ import server.http.Request;
 import server.http.Response;
 import server.http.Status;
 
+import java.util.List;
+
 public class LeaderboardController extends Controller {
     private final LeaderboardService leaderboardService;
+
     public LeaderboardController(LeaderboardService leaderboardService) {
         super("/leaderboard");
         this.leaderboardService = leaderboardService;
@@ -19,8 +22,7 @@ public class LeaderboardController extends Controller {
         String[] split = PathUtil.splitPath(subPath);
         if (request.getMethod().equals(Method.GET.getValue())) {
             if (isBase(split)) {
-                //Platzhalter
-                return getLeaderboard(request);
+                return getLeaderboard();
             }
         }
         return status(Status.NOT_FOUND);
@@ -34,8 +36,8 @@ public class LeaderboardController extends Controller {
 
     //   ------ Methoden --------
     // GET
-    private Response getLeaderboard(Request request) {
-        leaderboardService.getLeaderboard();
-        return text("Leaderboard:");
+    private Response getLeaderboard() {
+        List<LeaderboardEntry> leaderboard = leaderboardService.getLeaderboard();
+        return json(leaderboard, Status.OK);
     }
 }

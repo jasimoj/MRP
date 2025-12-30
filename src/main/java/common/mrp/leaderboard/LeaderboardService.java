@@ -3,17 +3,20 @@ package common.mrp.leaderboard;
 import common.exception.EntityNotFoundException;
 import common.mrp.media.Media;
 import common.mrp.media.MediaRepository;
+import common.mrp.rating.RatingRepository;
 import common.mrp.user.User;
+import common.mrp.user.UserRepository;
 
 import java.util.List;
 
 public class LeaderboardService {
-    public LeaderboardService(){
+    private final UserRepository userRepository;
 
+    public LeaderboardService(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
-    public List<User> getLeaderboard(){
-        // Wird später implementiert wenn bekannt ist welches repo aufgerufen werden muss
-        return List.of();
+    public List<LeaderboardEntry> getLeaderboard() {
+        return userRepository.getLeaderboardByRatings();
     }
 }
