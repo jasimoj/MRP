@@ -14,6 +14,8 @@ Service: enthält Logik (z.B. Authentifizierung, Ratings, Media-CRUD).
 
 Repository: führt Datenbank-Queries aus (z. B. Users, Media, Ratings, Favorites, Likes). Gibt Domänenobjekte zurück und übernimmt Mapping zwischen Tabellen/Joins (z. B. media_genres, rating_likes) und Java-Objekten.
 
+### UML-Diagramm
+![img.png](img.png)
 ### Authentifizierung
 
 #### Stateless Token-Auth:
@@ -41,6 +43,17 @@ Request-Verarbeitung unnötig kompliziert zu machen.
 * checkAuthorizationByUserId() prüft, ob der eingeloggte User auf die Ressource zugreifen darf.
 
 * Keine Speicherung von Tokens → komplett stateless.
+
+### SOLID Principles
+
+**Single Responsibility Principle (SRP):**  
+Controller, Service und Repository sind klar getrennt. Jede Klasse hat genau eine Aufgabe
+(z. B. MediaController für HTTP, MediaService für Business-Logik, MediaRepository für SQL).
+
+**Dependency Inversion Principle (DIP):**  
+Der Server arbeitet nur mit dem Authenticator-Interface. Die konkrete Authentifizierung
+wird zur Laufzeit bereitgestellt, wodurch der Server unabhängig von der Implementierung bleibt.
+
 
 ### Datenmodelle
 
