@@ -10,9 +10,9 @@ public class Media {
     private int releaseYear;
     private int ageRestriction;
     private String description;
-    private int createdByUserId; //für später
-    private double avgStars; //für später
-    private int ratingsCount; //für später
+    private int createdByUserId;
+    private double avgStars;
+    private int ratingsCount;
 
     public Media() {
 

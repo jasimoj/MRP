@@ -17,16 +17,6 @@ public class AuthService {
         this.userRepository = userRepository;
     }
 
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
-
-    public int getUserIdByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new CredentialMissmatchException("Invalid token user"))
-                .getId();
-    }
-
     public User registerUser(UserCredentials credentials) {
         if (credentials == null || credentials.getUsername().isEmpty() || credentials.getPassword().isEmpty()) {
             throw new CredentialMissmatchException("Missing username or password");

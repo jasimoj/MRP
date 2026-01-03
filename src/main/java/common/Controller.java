@@ -85,17 +85,11 @@ public abstract class Controller {
     }
 
     protected void checkAuthorizationByUserId(Request request, int expectedUserId) {
-        Integer current = requireAuthentication(request);
+        int current = requireAuthentication(request);
         if (current != expectedUserId) {
             throw new ForbiddenException("Not allowed to access this resource");
         }
     }
 
-    protected void checkAuthorizationByUsername(Request request, String expectedUsername){
-        String current = request.getAuthUsername();
-        if (current == null || !current.equals(expectedUsername)) {
-            throw new ForbiddenException("Not allowed to access this resource");
-        }
-    }
 
 }

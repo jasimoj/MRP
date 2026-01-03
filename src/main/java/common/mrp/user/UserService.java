@@ -28,11 +28,6 @@ public class UserService {
         return mediaRepository.findFavoritesByUserId(id);
     }
 
-    //Für leaderboard später?
-    public List<User> getAllUsers(){
-        return userRepository.findAll();
-    }
-
     public void updateUser(int id, UserProfileUpdate user){
         User updatedUser = userRepository.find(id)
                 .orElseThrow(EntityNotFoundException::new);
@@ -44,7 +39,5 @@ public class UserService {
     public void deleteUser(int id){
          userRepository.delete(id);
     }
-
-
 
 }

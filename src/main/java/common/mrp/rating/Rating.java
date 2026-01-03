@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class Rating {
     private int id;
-    private int userId; //für später
-    private int mediaId; //für später
+    private int userId;
+    private int mediaId;
     private String comment;
     private int stars;
-    private int likesCount; //für später
-    private boolean confirmed; //für später
-    private long createdAt; //für später
+    private int likesCount;
+    private boolean confirmed;
+    private long createdAt;
 
     public Rating() {
     }
@@ -80,11 +80,4 @@ public class Rating {
         this.createdAt = createdAt;
     }
 
-    @com.fasterxml.jackson.annotation.JsonProperty("timestamp")
-    public String getTimestampIso() {
-        return java.time.Instant.ofEpochMilli(createdAt)
-                .atZone(java.time.ZoneId.of("Europe/Vienna"))
-                .toLocalDateTime()
-                .toString();
-    }
 }
