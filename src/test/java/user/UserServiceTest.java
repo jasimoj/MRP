@@ -23,6 +23,8 @@ public class UserServiceTest {
     @BeforeEach
     void setUp() {
         userRepository = Mockito.mock(UserRepository.class);
+        mediaRepository = Mockito.mock(MediaRepository.class);
+
         userService = new UserService(userRepository, mediaRepository);
     }
 
