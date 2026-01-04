@@ -37,8 +37,8 @@ public class MediaRatingApplication implements Application {
     public MediaRatingApplication() {
         this.connectionPool = new ConnectionPool(
                 "postgresql",
-                "127.0.0.1",
-                5433,
+                "localhost",
+                5432,
                 "test",
                 "test123",
                 "mrpdb"

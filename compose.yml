@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: test123
       POSTGRES_DB: mrpdb
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - swen1v2:/var/lib/postgresql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
