@@ -5,8 +5,6 @@ public class MediaFilterHelper {
     public MediaFilterHelper() {
     }
 
-    ;
-
     public boolean isEmptyFilter(MediaFilter f) {
         return f.title == null &&
                 f.genre == null &&

@@ -58,6 +58,8 @@ public class MediaRatingApplication implements Application {
         LeaderboardService leaderboardService = new LeaderboardService(userRepo); // Repo nach DB entscheidung
         FavoriteService favoriteService = new FavoriteService(mediaRepo, userRepo, favoriteRepo); // Repo nach DB entscheidung
 
+        //ruft verifyFromAuthorizationHeader von authservice auf wenn authenticate() aufgerufen wird
+        // geht nur weil im interface genau eine methode ist
         this.authenticator = authService::verifyFromAuthorizationHeader;
 
         // ---- Controller (einmalig, mit Services) ----

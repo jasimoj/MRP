@@ -17,6 +17,7 @@ public class LeaderboardService {
     }
 
     public List<LeaderboardEntry> getLeaderboard() {
+        //Gibt top 10 user zurück mit meisten ratings
         return userRepository.getLeaderboardByRatings();
     }
 }

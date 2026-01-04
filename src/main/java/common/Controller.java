@@ -77,6 +77,7 @@ public abstract class Controller {
     }
 
     protected int requireAuthentication(Request request) {
+        //Checkt ob user eingeloggt ist (durch authUserId)
         Integer userId = request.getAuthUserId();
         if (userId == null) {
             throw new CredentialMissmatchException("Missing or invalid token");
@@ -85,6 +86,7 @@ public abstract class Controller {
     }
 
     protected void checkAuthorizationByUserId(Request request, int expectedUserId) {
+        //Checkt ob user Zugriff hat
         int current = requireAuthentication(request);
         if (current != expectedUserId) {
             throw new ForbiddenException("Not allowed to access this resource");

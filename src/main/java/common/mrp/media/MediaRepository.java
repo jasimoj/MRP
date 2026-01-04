@@ -74,7 +74,6 @@ public class MediaRepository {
             "GROUP BY m2.id ORDER BY shared_genres DESC, avg_score DESC, ratings_count DESC LIMIT 5;";
 
 
-
     private static String buildCandidates(int count) {
         String ph = String.join(", ", Collections.nCopies(count, "?"));
         return "SELECT m.id, m.title, COALESCE(AVG(r.stars), 0) AS avg_score, COUNT(r.id) AS ratings_count " +
@@ -326,6 +325,7 @@ public class MediaRepository {
             List<Recommendation> recommendationList = new ArrayList<>();
 
             //Top Genre bestimmen
+            //checken welches Genre der User häufig gut bewertet (z.B. >= 4 Sterne).
             try (PreparedStatement tG = conn.prepareStatement(GET_TOP_GENRE_FROM_USER)) {
                 tG.setInt(1, userId);
                 try (ResultSet rs = tG.executeQuery()) {
@@ -335,11 +335,12 @@ public class MediaRepository {
                 }
             }
 
+            //Falls der User nichts bewertet hat, gibt es keine empfehlungen
             if (topGenreId == null) {
                 return List.of();
             }
 
-            // Medias von diesem genre holen die der user noch nicht bewertet hat
+            // Medien von diesem genre holen die der user noch NICHT bewertet hat
             try (PreparedStatement mG = conn.prepareStatement(GET_MEDIA_BY_GENRE)) {
                 mG.setInt(1, topGenreId);
                 mG.setInt(2, userId);
@@ -351,10 +352,13 @@ public class MediaRepository {
                 }
             }
 
+            //Wenn keine kandidaten gefunden werden sind keine empfehlungen möglich
             if (mediasByGenre.isEmpty()) {
                 return List.of();
             }
 
+            //Kandidaten laden
+            // mit builCandidates werden Ids dynamisch ins sql geladen
             String candidatesSql = buildCandidates(mediasByGenre.size());
             try (PreparedStatement mG = conn.prepareStatement(candidatesSql)) {
                 for (int i = 0; i < mediasByGenre.size(); i++) {
@@ -378,6 +382,7 @@ public class MediaRepository {
         try (Connection conn = connectionPool.getConnection()) {
             List<Integer> userTopRatingIds = new ArrayList<>();
             //Top Ratings bestimmen
+            //z.B. die letzten/besten Ratings >= 4 Sterne
             try (PreparedStatement tR = conn.prepareStatement(GET_TOP_RATINGS_FROM_USER)) {
                 tR.setInt(1, userId);
                 try (ResultSet rs = tR.executeQuery()) {
@@ -387,13 +392,21 @@ public class MediaRepository {
                 }
             }
 
+            //Falls der User nichts bewertet hat, gibt es keine empfehlungen
             if (userTopRatingIds.isEmpty()) {
                 return List.of();
             }
+
+            // SQL dynamisch bauen:
+            //buildContentCandidates erzeugt eine Query, die Medien sucht, die ähnlich zu den Top-Ratings sind
+            //Genres, Mediatype, altersbeschränkung
+            //und die der User noch NICHT bewertet hat.
             String sql = buildContentCandidates(userTopRatingIds.size());
             List<Recommendation> recommendations = new ArrayList<>();
 
-            // Medias holen die in genre, altersbeschränkung und mediatype übereinstimmen
+
+            //Parameter 1 ist userId (für noch nicht bewertet)
+            //danach folgen die IDs der Top-Ratings für Vergleich.
             try (PreparedStatement mG = conn.prepareStatement(sql)) {
                 int index = 1;
                 mG.setInt(index++, userId);
@@ -416,10 +429,13 @@ public class MediaRepository {
     }
 
     public List<Media> findByFilter(MediaFilter filter) {
+        // Baut dynamisches SQL + Parameterliste (z.B. nach Titel, Genre, Jahr, Mediatype, Altersfreigabe, usw)
         SqlWithParams sqlWithParams = MediaFilterQueryBuilder.build(filter);
-        try (Connection conn = connectionPool.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sqlWithParams.sql))   {
 
+        try (Connection conn = connectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sqlWithParams.sql)) {
+
+            //Dynamische Paramenter der Reihe nach ins ps setzen
             for (int i = 0; i < sqlWithParams.params.size(); i++) {
                 ps.setObject(i + 1, sqlWithParams.params.get(i));
             }
@@ -429,7 +445,7 @@ public class MediaRepository {
 
                 while (rs.next()) {
                     Media m = map(rs);
-                    m.setGenres(loadGenres(conn, m.getId()));
+                    m.setGenres(loadGenres(conn, m.getId())); //genres seperat laden
                     mediaList.add(m);
                 }
                 return mediaList;

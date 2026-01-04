@@ -17,12 +17,12 @@ import java.util.Map;
 public class RequestMapper {
     private final Authenticator authenticator;
 
-
     public RequestMapper(Authenticator authenticator) {
         this.authenticator = authenticator;
     }
 
     public Request fromExchange(HttpExchange exchange) throws IOException {
+        //Extrahiert infos aus dem exchange objekt
         Request request = new Request();
         request.setMethod(exchange.getRequestMethod());
         request.setPath(exchange.getRequestURI().getPath());
@@ -31,8 +31,9 @@ public class RequestMapper {
         byte[] bytes = exchange.getRequestBody().readAllBytes();
         String body = bytes.length == 0 ? "" : new String(bytes, StandardCharsets.UTF_8);
         request.setBody(body);
-
+        //Auth header auslesen: "Bearer <token>
         String authHeader = exchange.getRequestHeaders().getFirst("Authorization");
+        //Authentifizieren und Userdaten im Request speichern
         authenticator.authenticate(authHeader).ifPresent(p -> {
             request.setAuthUserId(p.getUserId());
             request.setAuthUsername(p.getUsername());
@@ -40,29 +41,22 @@ public class RequestMapper {
         return request;
     }
 
-    private String extractBearerToken(String auth) {
-        if (auth == null) {
-            return null;
-        }
-        String a = auth.toLowerCase();
-        if (!a.startsWith("bearer ")) {
-            return null;
-        }
-        String token = auth.substring(7).trim(); // 7 = "Bearer ".length()
-        return token.isEmpty() ? null : token;
-    }
-
     private Map<String, List<String>> parseQueryParams(String rawQuery) {
+        //Parsed den Query-String (ohne "?") in eine Map
         Map<String, List<String>> map = new HashMap<>();
-        if(rawQuery == null || rawQuery.isBlank()){
+        if (rawQuery == null || rawQuery.isBlank()) {
             return map;
         }
 
-        for(String pair : rawQuery.split("&")){
-            if(!pair.isBlank()){
+        for (String pair : rawQuery.split("&")) {
+            if (!pair.isBlank()) {
+                // Split in key/value, max. 2 Teile (falls value selbst '=' enthält)
                 String[] pairs = pair.split("=", 2);
+                // Key ist immer vorhanden (auch wenn value fehlt)
                 String key = urlDecode(pairs[0]);
+                // Wenn kein "=" vorhanden ist: value = "" (Parameter ohne Wert)
                 String value = pairs.length > 1 ? urlDecode(pairs[1]) : "";
+                // computeIfAbsent: legt Liste an, falls key noch nicht existiert
                 map.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
             }
         }

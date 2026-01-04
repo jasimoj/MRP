@@ -1,6 +1,9 @@
 package common.mrp.auth;
 
 public class AuthPrincipal {
+    //Repräsentiert authentifizierten User
+    //Enthält geprüfte identitätsdaten: userId und Username
+    //Wird nach Authentifizierung in Request weiterverwendet
     private final Integer userId;
     private final String username;
 

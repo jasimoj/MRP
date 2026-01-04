@@ -20,9 +20,11 @@ public class Server {
         this.application = application;
     }
 
+    // Initialisiert und startet HTTP-Server mit passendem Authenticator
     public void start() {
         try {
             this.httpServer = HttpServer.create(new InetSocketAddress("localhost", this.port), 0);
+            //Authenticator nur dann verwenden, wenn die Applikation Authentifizierung unterstützt, sonst keine Authentifizierung
             Authenticator authenticator =
                     (application instanceof MediaRatingApplication app)
                             ? app.getAuthenticator()

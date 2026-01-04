@@ -63,11 +63,13 @@ public class Request {
     }
 
     public String getQueryParam(String key) {
+        //Zugriff auf einzelnen Wert
         List<String> values = queryParams.get(key);
         return (values == null || values.isEmpty()) ? null : values.get(0);
     }
 
     public List<String> getQueryParams(String key) {
+        //Zugriff auf alle werte
         return queryParams.getOrDefault(key, List.of());
     }
 }
